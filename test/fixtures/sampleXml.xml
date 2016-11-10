@@ -1,0 +1,154 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<collection>
+     <footwear>
+          <!--DIVIDERS-->
+          <divider-en>
+               <img>images/collections/dividers/divider-footwear-en.gif</img>
+          </divider-en>
+          <divider-la>
+               <img>images/collections/dividers/divider-footwear-la.gif</img>
+          </divider-la>
+          <divider-br>
+               <img>images/collections/dividers/divider-footwear-br.gif</img>
+          </divider-br>
+          <divider-es>
+               <img>images/collections/dividers/divider-footwear-es.gif</img>
+          </divider-es>
+          <divider-fr>
+               <img>images/collections/dividers/divider-footwear-fr.gif</img>
+          </divider-fr>
+          <divider-mx>
+               <img>images/collections/dividers/divider-footwear-mx.gif</img>
+          </divider-mx>
+          <divider-pt>
+               <img>images/collections/dividers/divider-footwear-pt.gif</img>
+          </divider-pt>
+          <divider-sa>
+               <img>images/collections/dividers/divider-footwear-sa.gif</img>
+          </divider-sa>
+          <divider-vn>
+               <img>images/collections/dividers/divider-footwear-vn.gif</img>
+          </divider-vn>
+          <!--PRODUCTS-->
+          <product number='1'>
+               <style>q6173</style>
+               <caption><![CDATA[ALLEN- PENNY]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6173_blk_a0</img>
+          </product>
+          <product number='2'>
+               <style>q6173</style>
+               <caption><![CDATA[ALLEN- PENNY]]></caption>
+               <colors>Cordovan</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6173_cor_a0</img>
+          </product>
+          <product number='3'>
+               <style>q6173</style>
+               <caption><![CDATA[ALLEN- PENNY]]></caption>
+               <colors>Dark Brown</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6173_dbr_a0</img>
+          </product>
+          <product number='4'>
+               <style>q6172</style>
+               <caption><![CDATA[ANDREW- DERBY PLAIN TOE]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6172_blk_a0</img>
+          </product>
+          <product number='5'>
+               <style>q6172</style>
+               <caption><![CDATA[ANDREW- DERBY PLAIN TOE]]></caption>
+               <colors>Cognac</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6172_cog_a0</img>
+          </product>
+          <product number='6'>
+               <style>q6172</style>
+               <caption><![CDATA[ANDREW- DERBY PLAIN TOE]]></caption>
+               <colors>Espresso</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6172_esp_a0</img>
+          </product>
+          <product number='7'>
+               <style>q6170</style>
+               <caption><![CDATA[AIDEN- OXFORD BINDED]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6170_blk_a0</img>
+          </product>
+          <product number='8'>
+               <style>q6170</style>
+               <caption><![CDATA[AIDEN- OXFORD BINDED]]></caption>
+               <colors>Cordovan</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6170_cor_a0</img>
+          </product>
+          <product number='9'>
+               <style>q6171</style>
+               <caption><![CDATA[ALEXANDER- DOUBLE MONK]]></caption>
+               <colors>Espresso</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6171_esp_a0</img>
+          </product>
+          <product number='10'>
+               <style>q6171</style>
+               <caption><![CDATA[ALEXANDER- DOUBLE MONK]]></caption>
+               <colors>Saddle</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6171_sad_a0</img>
+          </product>
+          <product number='11'>
+               <style>q6179</style>
+               <caption><![CDATA[BLAKE- MONK]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6179_blk_a0</img>
+          </product>
+          <product number='12'>
+               <style>q6178</style>
+               <caption><![CDATA[ARNOLD- CHELSEA]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6178_blk_a0</img>
+          </product>
+          <product number='13'>
+               <style>q6187</style>
+               <caption><![CDATA[BRYCE- JUDPHOR]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6187_blk_a0</img>
+          </product>
+          <product number='14'>
+               <style>q6187</style>
+               <caption><![CDATA[BRYCE- JUDPHOR]]></caption>
+               <colors>Cognac</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6187_cog_a0</img>
+          </product>
+          <product number='15'>
+               <style>q6186</style>
+               <caption><![CDATA[BRANDON- COMBAT BOOT]]></caption>
+               <colors>Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6186_blk_a0</img>
+          </product>
+          <product number='16'>
+               <style>q4117</style>
+               <caption><![CDATA[MCKAY- PENNY DRIVER]]></caption>
+               <colors>Black/Mahogany</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q4117_bkma_a0</img>
+          </product>
+          <product number='17'>
+               <style>q6199</style>
+               <caption><![CDATA[DAVE- CVO SNEAKER HIGH]]></caption>
+               <colors>Black/Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6199_bkbk_a0</img>
+          </product>
+          <product number='18'>
+               <style>q6199</style>
+               <caption><![CDATA[DAVE- CVO SNEAKER HIGH]]></caption>
+               <colors>Saddle/Saddle</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6199_cbu_a0</img>
+          </product>
+          <product number='19'>
+               <style>q6200</style>
+               <caption><![CDATA[DUKE- CVO SNEAKER LOW]]></caption>
+               <colors>Black/Black</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6200_bkbk_a0</img>
+          </product>
+          <product number='20'>
+               <style>q6200</style>
+               <caption><![CDATA[DUKE- CVO SNEAKER LOW]]></caption>
+               <colors>Saddle/Saddle</colors>
+               <img>https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6200_cbu_a0</img>
+          </product>
+     </footwear>
+</collection>
