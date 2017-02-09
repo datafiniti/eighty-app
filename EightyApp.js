@@ -13,7 +13,7 @@ STANDARDS FOR WRITING NEW FUNCTIONS
    Functions that return text should instead return an empty string upon receiving bad input.
 ****************************/
 
-var EightyApp = function() {
+var EightyAppBase = function() {
     var authStatus;
 
     var initialize = function() {
@@ -36,19 +36,19 @@ var EightyApp = function() {
      * @return {Array} retruns the input array with each item being trimed
      */
      this.trimAll = function(array) {
-	if (array !== null && array instanceof Array && array.length > 0)
-	    for (var i = 0; i < array.length; i++) {
-		if (typeof array[i] === 'string' || array[i] instanceof String) {
+    if (array !== null && array instanceof Array && array.length > 0)
+        for (var i = 0; i < array.length; i++) {
+        if (typeof array[i] === 'string' || array[i] instanceof String) {
                     var tmp = this.removeExtraWhitespace(array[i]);
                     if(tmp.length>0)
                         array[i] = tmp;
                 } else
-		    return null;
-	    }
-	     else
-	         return null;
-	    return array;
-	}
+            return null;
+        }
+         else
+             return null;
+        return array;
+    }
 
     this.processDocument = function(html, url, headers, status, jQuery) {};
 
@@ -488,104 +488,105 @@ var EightyApp = function() {
 
         return replacedString;
     };
-	
-	this.stateCodeConverter = {
-		"Alabama": "AL",
-		"Alaska": "AK",
-		"American Samoa": "AS",
-		"Arizona": "AZ",
-		"Arkansas": "AR",
-		"California": "CA",
-		"Colorado": "CO",
-		"Connecticut": "CT",
-		"Delaware": "DE",
-		"District Of Columbia": "DC",
-		"Federated States Of Micronesia": "FM",
-		"Florida": "FL",
-		"Georgia": "GA",
-		"Guam": "GU",
-		"Hawaii": "HI",
-		"Idaho": "ID",
-		"Illinois": "IL",
-		"Indiana": "IN",
-		"Iowa": "IA",
-		"Kansas": "KS",
-		"Kentucky": "KY",
-		"Louisiana": "LA",
-		"Maine": "ME",
-		"Marshall Islands": "MH",
-		"Maryland": "MD",
-		"Massachusetts": "MA",
-		"Michigan": "MI",
-		"Minnesota": "MN",
-		"Mississippi": "MS",
-		"Missouri": "MO",
-		"Montana": "MT",
-		"Nebraska": "NE",
-		"Nevada": "NV",
-		"New Hampshire": "NH",
-		"New Jersey": "NJ",
-		"New Mexico": "NM",
-		"New York": "NY",
-		"North Carolina": "NC",
-		"North Dakota": "ND",
-		"Northern Mariana Islands": "MP",
-		"Ohio": "OH",
-		"Oklahoma": "OK",
-		"Oregon": "OR",
-		"Palau": "PW",
-		"Pennsylvania": "PA",
-		"Puerto Rico": "PR",
-		"Rhode Island": "RI",
-		"South Carolina": "SC",
-		"South Dakota": "SD",
-		"Tennessee": "TN",
-		"Texas": "TX",
-		"Utah": "UT",
-		"Vermont": "VT",
-		"Virgin Islands": "VI",
-		"Virginia": "VA",
-		"Washington": "WA",
-		"West Virginia": "WV",
-		"Wisconsin": "WI",
-		"Wyoming": "WY",
-		"Slberta": "AB",
-		"British Columbia": "BC",
-		"Manitoba": "MB",
-		"New Brunswick": "NB",
-		"Newfoundland Snd Labrador": "NL",
-		"Nova Scotia": "NS",
-		"Nunavut": "NU",
-		"Ontario": "ON",
-		"Prince Edward Island": "PE",
-		"Quebec": "QC",
-		"Saskatchewan": "SK",
-		"Yukon": "YT"
-	}
+    
+    this.stateCodeConverter = {
+        "Alabama": "AL",
+        "Alaska": "AK",
+        "American Samoa": "AS",
+        "Arizona": "AZ",
+        "Arkansas": "AR",
+        "California": "CA",
+        "Colorado": "CO",
+        "Connecticut": "CT",
+        "Delaware": "DE",
+        "District Of Columbia": "DC",
+        "Federated States Of Micronesia": "FM",
+        "Florida": "FL",
+        "Georgia": "GA",
+        "Guam": "GU",
+        "Hawaii": "HI",
+        "Idaho": "ID",
+        "Illinois": "IL",
+        "Indiana": "IN",
+        "Iowa": "IA",
+        "Kansas": "KS",
+        "Kentucky": "KY",
+        "Louisiana": "LA",
+        "Maine": "ME",
+        "Marshall Islands": "MH",
+        "Maryland": "MD",
+        "Massachusetts": "MA",
+        "Michigan": "MI",
+        "Minnesota": "MN",
+        "Mississippi": "MS",
+        "Missouri": "MO",
+        "Montana": "MT",
+        "Nebraska": "NE",
+        "Nevada": "NV",
+        "New Hampshire": "NH",
+        "New Jersey": "NJ",
+        "New Mexico": "NM",
+        "New York": "NY",
+        "North Carolina": "NC",
+        "North Dakota": "ND",
+        "Northern Mariana Islands": "MP",
+        "Ohio": "OH",
+        "Oklahoma": "OK",
+        "Oregon": "OR",
+        "Palau": "PW",
+        "Pennsylvania": "PA",
+        "Puerto Rico": "PR",
+        "Rhode Island": "RI",
+        "South Carolina": "SC",
+        "South Dakota": "SD",
+        "Tennessee": "TN",
+        "Texas": "TX",
+        "Utah": "UT",
+        "Vermont": "VT",
+        "Virgin Islands": "VI",
+        "Virginia": "VA",
+        "Washington": "WA",
+        "West Virginia": "WV",
+        "Wisconsin": "WI",
+        "Wyoming": "WY",
+        "Slberta": "AB",
+        "British Columbia": "BC",
+        "Manitoba": "MB",
+        "New Brunswick": "NB",
+        "Newfoundland Snd Labrador": "NL",
+        "Nova Scotia": "NS",
+        "Nunavut": "NU",
+        "Ontario": "ON",
+        "Prince Edward Island": "PE",
+        "Quebec": "QC",
+        "Saskatchewan": "SK",
+        "Yukon": "YT"
+    }
 
-	this.countryCodeConverter = {
-		"Albania": "AL",
-		"Afghanistan": "AF",
-		"Andorra": "AD",
-		"Anguilla": "AI",
-		"Algeria": "DZ",
-		"American Samoa": "AS",
-		"Antigua and Barbuda": "AG",
-		"Argentina": "AR",
-		"Armenia": "AM",
-		"Aruba": "AW",
-		"Australia": "AU",
-		"Austria": "AT",
-		"Azerbaijan": "AZ",
-		"Bahamas": "BS",
-		"Bahrain": "BH",
-		"Bangladesh": "BD",
-		"Barbados": "BB",
-		"Bay Islands Honduras": "HN",
-		"Belarus": "BY",
-		"Belize": "BZ",
-		"Belgium": "BE",
-		"Benin": "BJ",
+    this.countryCodeConverter = {
+        "Albania": "AL",
+        "Afghanistan": "AF",
+        "Andorra": "AD",
+        "Anguilla": "AI",
+        "Algeria": "DZ",
+        "American Samoa": "AS",
+        "Angola": "AO",
+        "Antigua and Barbuda": "AG",
+        "Argentina": "AR",
+        "Armenia": "AM",
+        "Aruba": "AW",
+        "Australia": "AU",
+        "Austria": "AT",
+        "Azerbaijan": "AZ",
+        "Bahamas": "BS",
+        "Bahrain": "BH",
+        "Bangladesh": "BD",
+        "Barbados": "BB",
+        "Bay Islands Honduras": "HN",
+        "Belarus": "BY",
+        "Belize": "BZ",
+        "Belgium": "BE",
+        "Benin": "BJ",
         "Bermuda": "BM",
         "Bhutan": "BT",
         "Bosnia and Herzegovina": "BA",
@@ -642,7 +643,7 @@ var EightyApp = function() {
         "Guadeloupe": "GP",
         "Guam": "GU",
         "Guatemala": "GT",
-		"Guernsey": "GG",
+        "Guernsey": "GG",
         "Guyana": "GY",
         "Haiti": "HT",
         "Hong Kong": "HK",
@@ -682,7 +683,7 @@ var EightyApp = function() {
         "Malta": "MT",
         "Marshall Islands": "MH",
         "Martinique": "MQ",
-	    "Mauritania": "MR",
+        "Mauritania": "MR",
         "Mauritius": "MU",
         "Mexico": "MX",
         "Moldova": "MD",
@@ -694,7 +695,7 @@ var EightyApp = function() {
         "Mozambique": "MZ",
         "Myanmar": "MM",
         "Nambia": "NA",
-	    "Namibia": "NA",
+        "Namibia": "NA",
         "Nauru": "NR",
         "Nepal": "NP",
         "Netherlands": "NL",
@@ -1250,12 +1251,11 @@ var EightyApp = function() {
     // Returns:
     //      If valid hour range, returns it, else tries to fix it, or report that a fix is needed
     this.processHour = function(value){
-        if(value.match(/\d{1,2}:\d{2} [a|p]m - \d{1,2}:\d{2} [a|p]m/i)){
-            return value
-        } else  if(value.match(/\d{1,2} *[a|p]m - \d{1,2} *[a|p]m/i)){
-            return value.replace(/(\d{1,2}) *([a|p]m) - (\d{1,2}) *([a|p]m)/, "$1:00 $2 - $3:00 $4")
-        } else if(value.match(/\d{1,2}:\d{2}[a|p]m - \d{1,2}:\d{2}[a|p]m/i)){
-            return value.replace(/(\d{1,2}):(\d{2})([a|p]m) - (\d{1,2}):(\d{2})([a|p]m)/, "$1:$2 $3 - $4:$5 $6")
+        if(value.match(/(\d{1,2})(:\d{2})* *([a|p]m) *(?:to|-|through) *(\d{1,2})(:\d{2})* *([a|p]m)/i)){
+            function replacer(match, m1, m2, m3, m4, m5, m6){
+                return m1+(m2===undefined? ':00' : m2)+' '+m3+' - '+m4+(m5===undefined? ':00' : m5)+' '+m6
+            }
+            return value.replace(/(\d{1,2})(:\d{2})* *([a|p]m) *(?:to|-|through) *(\d{1,2})(:\d{2})* *([a|p]m)/i, replacer).toLowerCase()
         } else if(value.match(/24 hour/i)){
             return '12:00 am - 11:59 pm'
         } else {
@@ -1302,7 +1302,8 @@ var EightyApp = function() {
     return obj;
   };
     
-  // Return a list of objects, with each object containing a sourceURL attribute
+  // Return a list of objects, with each object containing a sourceURL attribute.
+  // If old value is a string, it will set the key of the new object to the name of the old key.
   this.finalizeFieldAsListOfObjects = function(oldFieldName, oldField, url) {
 
     var app = this;
@@ -1342,20 +1343,114 @@ var EightyApp = function() {
         
     return newFieldList;
   };
+
+  // Maps key names to new key names in a list of objects
+  this.finalizeObjectList = function(objectList, oldKeyName, newKeyName) {
+
+    var newObjectList = [];
+
+    for (var i = 0; i < objectList.length; i++) {
+      var objectElement = objectList[i];
+      if (oldKeyName in objectElement) {
+        objectElement[newKeyName] = objectElement[oldKeyName];
+        delete objectElement[oldKeyName];
+      }
+
+      newObjectList.push(objectElement);
+    }
+
+    return newObjectList;
+  }
+
+  // Splits price value strings into currency and amount attributes.  Returns an object.
+  this.finalizePrice = function(priceString) {
     
+    var priceObject = {};
+    var priceStringREOne = new RegExp('[A-Z]{3} [0-9,\.]{1,}');
+    var priceStringRETwo = new RegExp('[A-Z]{3} [0-9,\.]{1,} - [A-Z]{3} [0-9,\.]{1,}');
+
+    // Option 1: priceString is like "USD ###"
+    if (priceStringREOne.test(priceString)) {
+
+      var priceStringArr = priceString.split(' ');
+      var priceCurrency = priceStringArr[0];
+      var priceAmount = parseFloat(priceStringArr[1]).toFixed(2);
+
+      priceObject.currency = priceCurrency;
+      priceObject.amountMin = priceAmount;
+      priceObject.amountMax = priceAmount;
+      
+    // Option 2: priceString is like "USD ### - USD ###"
+    } else if (priceStringRETwo.test(priceString)) {
+
+      var priceStringArr = priceString.split(' - ');
+      var priceRangeMin = priceStringArr[0];
+      var priceRangeMax = priceStringArr[1];
+
+      var priceRangeMinArr = priceRangeMin.split(' ');
+      var priceRangeMaxArr = priceRangeMax.split(' ');
+
+      var priceCurrency = priceRangeMinArr[0];
+      var priceAmountMin = parseFloat(priceRangeMinArr[1]).toFixed(2);
+      var priceAmountMax = parseFloat(priceRangeMaxArr[1]).toFixed(2);
+
+      priceObject.currency = priceCurrency;
+      priceObject.amountMin = priceAmountMin;
+      priceObject.amountMax = priceAmountMax;
+
+    }
+
+    return priceObject;
+  }
+
+  // Maps legacy price objects to new price object format.
+  this.finalizePriceObject = function(priceObject) {
+
+    var newPriceObject = priceObject;
+
+    if ('price' in priceObject) {
+      var newPriceObjFromString = this.finalizePrice(priceObject.price);
+
+      newPriceObject.currency = newPriceObjFromString.currency;
+      newPriceObject.amountMin = newPriceObjFromString.amountMin;
+      newPriceObject.amountMax = newPriceObjFromString.amountMax;
+      delete newPriceObject.price;
+
+    } else if ('salePrice' in priceObject) {
+      var newPriceObjFromString = this.finalizePrice(priceObject.salePrice);
+
+      newPriceObject.currency = newPriceObjFromString.currency;
+      newPriceObject.amountMin = newPriceObjFromString.amountMin;
+      newPriceObject.amountMax = newPriceObjFromString.amountMax;
+      newPriceObject.isSale = true;
+      delete newPriceObject.salePrice;
+
+    } else if ('priceRange' in priceObject) {
+      var newPriceObjFromString = this.finalizePrice(priceObject.priceRange);
+
+      newPriceObject.currency = newPriceObjFromString.currency;
+      newPriceObject.amountMin = newPriceObjFromString.amountMin;
+      newPriceObject.amountMax = newPriceObjFromString.amountMax;
+      delete newPriceObject.priceRange;
+
+    }
+
+    return newPriceObject;
+  }
+
   // Map any legacy data type values to new/current data type values
   this.finalizeDataType = function(dataType) {
-   	
+    
     var newDataType = dataType;
-   	
+    
     if (dataType === 'product') { // This isn't changing, just keeping as a placeholder
-    	
+        
     } else if (dataType === 'products') {
       newDataType = 'product';
     } else if (dataType === 'business') { // Placeholder
 
     } else if (dataType === 'location') {
-      newDataType = 'business';    	
+      newDataType = 'business';     
     } else if (dataType === 'locations') {
       newDataType = 'business';
     } else if (dataType === 'property') { // This isn't changing, just keeping as a placeholder
@@ -1379,7 +1474,7 @@ var EightyApp = function() {
 
       var prefix = encodeURIComponent(parameter) + '=';
       var pars = urlparts[1].split(/[&;]/g);
-	
+    
       //reverse iteration as may be destructive
       for (var i= pars.length; i-- > 0;) {    
         //idiom for string.startsWith
@@ -1387,7 +1482,7 @@ var EightyApp = function() {
           pars.splice(i, 1);
         }
       }
-	
+    
       url = urlparts[0] + (pars.length > 0 ? '?' + pars.join('&') : "");
       return url;
     } else {
@@ -1397,8 +1492,10 @@ var EightyApp = function() {
     
   // Remove the 80flag parameter from a URL
   this.strip80flagFromURL = function (url) {
-        
-    var urlWithout80flag = this.removeURLParameter(url,"80flag");
+    
+    var urlWithout80flag = url;
+    if ((url.indexOf("?80flag=") == -1) || (url.indexOf("&80flag=") == -1))
+      urlWithout80flag = this.removeURLParameter(url,"80flag");
     return urlWithout80flag;
   };
 
@@ -1424,22 +1521,36 @@ var EightyApp = function() {
       // Add more fields here as needed
       if ('description' in result)  {
         finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
+	finalizedResult.descriptions	= app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
         delete finalizedResult.description;
       }
       if ('descriptions' in result)  {
         finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.descriptions, url);
+        finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
       }
 
       if ('prices' in result) {
         finalizedResult.prices          = app.finalizeFieldAsListOfObjects('prices', result.prices, url);
+        var newFinalizedPriceList = [];
+        for (i = 0; i < finalizedResult.prices.length; i++) {
+          var newPriceObject = app.finalizePriceObject(finalizedResult.prices[i]);
+          newFinalizedPriceList.push(newPriceObject);
+        }
+        finalizedResult.prices = newFinalizedPriceList;
       }
       if ('reviews' in result) {
         finalizedResult.reviews         = app.finalizeFieldAsListOfObjects('reviews', result.reviews, url);
       }
       if ('sku' in result) {
         finalizedResult.skus            = app.finalizeFieldAsListOfObjects('sku', result.sku, url);
+        finalizedResult.skus		= app.finalizeObjectList(finalizedResult.skus, 'sku', 'value');
         delete finalizedResult.sku;
       }
+      
+      // Add a dateSeen to descriptions
+      if ('descriptions' in finalizedResult)
+        for (var i = 0; i < finalizedResult.descriptions.length; i++)
+            finalizedResult.descriptions[i].dateSeen = new Date();
       
       // Make sure data type is correct
       if ('data_type' in result) {
@@ -1458,6 +1569,29 @@ var EightyApp = function() {
     return finalizedResult;
   };
 
-}; //function: EightyApp
+};//function: EightyAppBase
 
-module.exports = EightyApp;
+// The following is included to make this testable with node.js
+try {
+    if (module != null) {
+        var $ = this.$ = "";
+    }
+} catch (e) {}
+this.processTest = function(html, url, headers, status) {
+    var app = this;
+    var env = require('jsdom').env;
+    env(html, function(errors, window) {
+        $ = this.$ = require('jquery')(window);
+        var result = app.processDocument(html, url, headers, status, $);
+        console.log(result);
+        var links = app.parseLinks(html, url, headers, status, $);
+        console.log(links);
+    });
+}
+
+try {
+    // Testing
+    module.exports = EightyAppBase;
+} catch (e) {
+    // Production
+}
