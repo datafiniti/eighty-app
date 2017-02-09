@@ -5,7 +5,7 @@
 **Usage**:
 
 ```javascript
-var EightyApp = require("EightyApp");
+var EightyApp = require("eighty-app");
 var app = new EightyApp();
 
 app.processDocument = function(html, url, headers, status, $) {
@@ -32,7 +32,9 @@ app.parseLinks = function(html, url, headers, status, $) {
 }
 
 /* don't forget to add this in! Otherwise we won't be able to use your scraper from within our crawling engine */
-module.exports = app;
+module.exports = function() {
+  return app;
+}
 ```
 
 refer [here](https://80legs.groovehq.com/help_center) for additional support
