@@ -1291,14 +1291,16 @@ var EightyAppBase = function() {
 
     var newObject = {};
     newObject[key] = value;
-    newObject.sourceURL = this.strip80flagFromURL(url);
+    newObject.sourceURLs = new Array();
+    newObject.sourceURLs.push(this.strip80flagFromURL(url));
     
     return newObject;
   };
     
   this.addSourceURLToObject = function (obj, url) {
       
-    obj.sourceURL = this.strip80flagFromURL(url);
+    obj.sourceURLs = new Array();
+    obj.sourceURLs.push(this.strip80flagFromURL(url));
     return obj;
   };
     
@@ -1502,8 +1504,12 @@ var EightyAppBase = function() {
   // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
   this.finalizeRecord = function(result, url) {
  
+    // check if result is empty
+    if (JSON.stringify(result) === '{}') {
+        return result;
+    }
     // check if result is an array of records
-    if (result.constructor === Array) {
+    else if (result.constructor === Array) {
 
       var finalizedResultList = [];
       for (i = 0; i < result.length; i++) {
@@ -1521,7 +1527,7 @@ var EightyAppBase = function() {
       // Add more fields here as needed
       if ('description' in result)  {
         finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
-	finalizedResult.descriptions	= app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+	    finalizedResult.descriptions	= app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
         delete finalizedResult.description;
       }
       if ('descriptions' in result)  {
@@ -1563,11 +1569,9 @@ var EightyAppBase = function() {
       var sourceURLs = [];
       sourceURLs.push(app.strip80flagFromURL(url));
       finalizedResult.sourceURLs = sourceURLs;
-      
+     
+      return finalizedResult;
     }
-
-    return finalizedResult;
-  };
 
 };//function: EightyAppBase
 
