@@ -1364,9 +1364,9 @@ var EightyAppBase = function() {
     return newObjectList;
   }
 
+
   // Splits price value strings into currency and amount attributes.  Returns an object.
   this.finalizePrice = function(priceString) {
-    
     var priceObject = {};
     var priceStringREOne = new RegExp('[A-Z]{3} [0-9,\.]{1,}');
     var priceStringRETwo = new RegExp('[A-Z]{3} [0-9,\.]{1,} - [A-Z]{3} [0-9,\.]{1,}');
@@ -1376,12 +1376,12 @@ var EightyAppBase = function() {
 
       var priceStringArr = priceString.split(' ');
       var priceCurrency = priceStringArr[0];
-      var priceAmount = parseFloat(priceStringArr[1]).toFixed(2);
+      var priceAmount = parseFloat(priceStringArr[1]);
 
       priceObject.currency = priceCurrency;
       priceObject.amountMin = priceAmount;
       priceObject.amountMax = priceAmount;
-      
+
     // Option 2: priceString is like "USD ### - USD ###"
     } else if (priceStringRETwo.test(priceString)) {
 
@@ -1393,8 +1393,8 @@ var EightyAppBase = function() {
       var priceRangeMaxArr = priceRangeMax.split(' ');
 
       var priceCurrency = priceRangeMinArr[0];
-      var priceAmountMin = parseFloat(priceRangeMinArr[1]).toFixed(2);
-      var priceAmountMax = parseFloat(priceRangeMaxArr[1]).toFixed(2);
+      var priceAmountMin = parseFloat(priceRangeMinArr[1]);
+      var priceAmountMax = parseFloat(priceRangeMaxArr[1]);
 
       priceObject.currency = priceCurrency;
       priceObject.amountMin = priceAmountMin;
@@ -1439,7 +1439,7 @@ var EightyAppBase = function() {
 
     return newPriceObject;
   }
-
+  
   // Map any legacy data type values to new/current data type values
   this.finalizeDataType = function(dataType) {
     
