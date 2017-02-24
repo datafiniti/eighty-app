@@ -13,7 +13,7 @@ STANDARDS FOR WRITING NEW FUNCTIONS
    Functions that return text should instead return an empty string upon receiving bad input.
 ****************************/
 
-var EightyAppBase = function() {
+var EightyApp = function() {
     var authStatus;
 
     var initialize = function() {
@@ -1527,7 +1527,7 @@ var EightyAppBase = function() {
       // Add more fields here as needed
       if ('description' in result)  {
         finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
-	    finalizedResult.descriptions	= app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+        finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
         delete finalizedResult.description;
       }
       if ('descriptions' in result)  {
@@ -1549,7 +1549,7 @@ var EightyAppBase = function() {
       }
       if ('sku' in result) {
         finalizedResult.skus            = app.finalizeFieldAsListOfObjects('sku', result.sku, url);
-        finalizedResult.skus		= app.finalizeObjectList(finalizedResult.skus, 'sku', 'value');
+        finalizedResult.skus        = app.finalizeObjectList(finalizedResult.skus, 'sku', 'value');
         delete finalizedResult.sku;
       }
       
@@ -1572,31 +1572,7 @@ var EightyAppBase = function() {
      
       return finalizedResult;
     }
+  };
+}; //function: EightyApp
 
-};//function: EightyAppBase
-
-// The following is included to make this testable with node.js
-try {
-    if (module != null) {
-        var $ = this.$ = "";
-    }
-} catch (e) {}
-this.processTest = function(html, url, headers, status) {
-    var app = this;
-    var env = require('jsdom').env;
-    env(html, function(errors, window) {
-        $ = this.$ = require('jquery')(window);
-        var result = app.processDocument(html, url, headers, status, $);
-        console.log(result);
-        var links = app.parseLinks(html, url, headers, status, $);
-        console.log(links);
-    });
-}
-
-try {
-    // Testing
-    module.exports = EightyAppBase;
-} catch (e) {
-    // Production
-}
-}
+module.exports = EightyApp;
