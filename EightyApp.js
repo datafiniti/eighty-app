@@ -1554,6 +1554,7 @@ var EightyApp = function() {
       }
       
       // Add a dateSeen to descriptions
+      if ('descriptions' in finalizedResult)
         for (var i = 0; i < finalizedResult.descriptions.length; i++) {
             var dateSeen = new Date();
             finalizedResult.descriptions[i].dateSeen = [];
