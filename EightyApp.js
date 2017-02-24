@@ -1555,8 +1555,39 @@ var EightyApp = function() {
       
       // Add a dateSeen to descriptions
       if ('descriptions' in finalizedResult)
-        for (var i = 0; i < finalizedResult.descriptions.length; i++)
-            finalizedResult.descriptions[i].dateSeen = new Date();
+        for (var i = 0; i < finalizedResult.descriptions.length; i++) {
+            var dateSeen = new Date();
+            finalizedResult.descriptions[i].dateSeen = [];
+            finalizedResult.descriptions[i].dateSeen.push(dateSeen);            
+        }
+        
+      if ('merchants' in finalizedResult)
+        for (var i = 0; i < finalizedResult.merchants.length; i++) {
+            var dateSeen = new Date();
+            finalizedResult.merchants[i].dateSeen = [];
+            finalizedResult.merchants[i].dateSeen.push(dateSeen);            
+        }
+
+      if ('prices' in finalizedResult)
+        for (var i = 0; i < finalizedResult.prices.length; i++) {
+            var dateSeen = new Date();
+            finalizedResult.prices[i].dateSeen = [];
+            finalizedResult.prices[i].dateSeen.push(dateSeen);            
+        }
+
+      if ('quantities' in finalizedResult)
+        for (var i = 0; i < finalizedResult.quantities.length; i++) {
+            var dateSeen = new Date();
+            finalizedResult.quantities[i].dateSeen = [];
+            finalizedResult.quantities[i].dateSeen.push(dateSeen);            
+        }
+
+      if ('reviews' in finalizedResult)
+        for (var i = 0; i < finalizedResult.reviews.length; i++) {
+            var dateSeen = new Date();
+            finalizedResult.reviews[i].dateSeen = [];
+            finalizedResult.reviews[i].dateSeen.push(dateSeen);            
+        }
       
       // Make sure data type is correct
       if ('data_type' in result) {
