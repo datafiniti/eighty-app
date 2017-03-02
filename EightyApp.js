@@ -29,6 +29,8 @@ var EightyApp = function() {
             message: msg.toString()
         })
     }
+    
+    this.version = "1.7";
 
     /**
      * For each value in an array, removes any trailing whitespace
@@ -1286,8 +1288,8 @@ var EightyApp = function() {
         return false
     }
 
-  // Return an object where object.key = value and object.sourceURL = url
-  this.convertStringToObjectWithSourceURL = function (key, value, url) {
+// Return an object where object.key = value and object.sourceURL = url
+  this.convertElementToObjectWithSourceURL = function (key, value, url) {
 
     var newObject = {};
     newObject[key] = value;
@@ -1314,8 +1316,8 @@ var EightyApp = function() {
     var newFieldValueName; // the value field for the object. E.g., prices.amount
 
     // Option 1: The field is a single-valued string. We need to create an object, add a sourceURL for the field, and push it to an array.
-    if (typeof oldField === "string") {
-      newFieldList.push(app.convertStringToObjectWithSourceURL(oldFieldName,oldField,url));
+    if (typeof oldField === "string" || typeof oldField === "number") {
+        newFieldList.push(app.convertElementToObjectWithSourceURL(oldFieldName,oldField,url));
 
     } else if (typeof oldField === "object") {
       // Option 2: The field is already an array. We need to check if it's an array of objects or strings. We need to add sourceURLs and push the new objects to an array.
@@ -1327,7 +1329,7 @@ var EightyApp = function() {
         var oldFieldElement = oldField[i];
 
         if (typeof oldFieldElement === "string") {
-          newFieldList.push(app.convertStringToObjectWithSourceURL(oldFieldName,oldFieldElement,url));
+          newFieldList.push(app.convertElementToObjectWithSourceURL(oldFieldName,oldFieldElement,url));
         } else if (typeof oldFieldElement === "object") {
           newFieldList.push(app.addSourceURLToObject(oldFieldElement,url));
         }
@@ -1363,7 +1365,6 @@ var EightyApp = function() {
 
     return newObjectList;
   }
-
 
   // Splits price value strings into currency and amount attributes.  Returns an object.
   this.finalizePrice = function(priceString) {
@@ -1424,7 +1425,7 @@ var EightyApp = function() {
       newPriceObject.currency = newPriceObjFromString.currency;
       newPriceObject.amountMin = newPriceObjFromString.amountMin;
       newPriceObject.amountMax = newPriceObjFromString.amountMax;
-      newPriceObject.isSale = true;
+      newPriceObject.isSale = "true";
       delete newPriceObject.salePrice;
 
     } else if ('priceRange' in priceObject) {
@@ -1439,7 +1440,7 @@ var EightyApp = function() {
 
     return newPriceObject;
   }
-  
+
   // Map any legacy data type values to new/current data type values
   this.finalizeDataType = function(dataType) {
     
@@ -1501,109 +1502,116 @@ var EightyApp = function() {
     return urlWithout80flag;
   };
 
-  // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
-  this.finalizeRecord = function(result, url) {
+    // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
+    this.finalizeRecord = function(result, url) {
  
-    // check if result is empty
-    if (JSON.stringify(result) === '{}') {
-        return result;
-    }
-    // check if result is an array of records
-    else if (result.constructor === Array) {
-
-      var finalizedResultList = [];
-      for (i = 0; i < result.length; i++) {
-        finalizedResultList.push(this.finalizeRecord(result[i],url));
-      }
-
-      return finalizedResultList;
-
-    } else {
-
-      var app = this;
-      var finalizedResult = result;
-
-      // Modify specific fields that were changed during DSE>ES migration
-      // Add more fields here as needed
-      if ('description' in result)  {
-        finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
-        finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
-        delete finalizedResult.description;
-      }
-      if ('descriptions' in result)  {
-        finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.descriptions, url);
-        finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
-      }
-
-      if ('prices' in result) {
-        finalizedResult.prices          = app.finalizeFieldAsListOfObjects('prices', result.prices, url);
-        var newFinalizedPriceList = [];
-        for (i = 0; i < finalizedResult.prices.length; i++) {
-          var newPriceObject = app.finalizePriceObject(finalizedResult.prices[i]);
-          newFinalizedPriceList.push(newPriceObject);
+        // check if result is empty
+        if (JSON.stringify(result) === '{}') {
+            return result;
         }
-        finalizedResult.prices = newFinalizedPriceList;
-      }
-      if ('reviews' in result) {
-        finalizedResult.reviews         = app.finalizeFieldAsListOfObjects('reviews', result.reviews, url);
-      }
-      if ('sku' in result) {
-        finalizedResult.skus            = app.finalizeFieldAsListOfObjects('sku', result.sku, url);
-        finalizedResult.skus        = app.finalizeObjectList(finalizedResult.skus, 'sku', 'value');
-        delete finalizedResult.sku;
-      }
-      
-      // Add a dateSeen to descriptions
-      if ('descriptions' in finalizedResult)
-        for (var i = 0; i < finalizedResult.descriptions.length; i++) {
-            var dateSeen = new Date();
-            finalizedResult.descriptions[i].dateSeen = [];
-            finalizedResult.descriptions[i].dateSeen.push(dateSeen);            
-        }
-        
-      if ('merchants' in finalizedResult)
-        for (var i = 0; i < finalizedResult.merchants.length; i++) {
-            var dateSeen = new Date();
-            finalizedResult.merchants[i].dateSeen = [];
-            finalizedResult.merchants[i].dateSeen.push(dateSeen);            
-        }
+        // check if result is an array of records
+        else if (result.constructor === Array) {
 
-      if ('prices' in finalizedResult)
-        for (var i = 0; i < finalizedResult.prices.length; i++) {
-            var dateSeen = new Date();
-            finalizedResult.prices[i].dateSeen = [];
-            finalizedResult.prices[i].dateSeen.push(dateSeen);            
-        }
+            var finalizedResultList = [];
+            for (i = 0; i < result.length; i++) {
+                finalizedResultList.push(this.finalizeRecord(result[i],url));
+            }
 
-      if ('quantities' in finalizedResult)
-        for (var i = 0; i < finalizedResult.quantities.length; i++) {
-            var dateSeen = new Date();
-            finalizedResult.quantities[i].dateSeen = [];
-            finalizedResult.quantities[i].dateSeen.push(dateSeen);            
-        }
+            return finalizedResultList;
 
-      if ('reviews' in finalizedResult)
-        for (var i = 0; i < finalizedResult.reviews.length; i++) {
-            var dateSeen = new Date();
-            finalizedResult.reviews[i].dateSeen = [];
-            finalizedResult.reviews[i].dateSeen.push(dateSeen);            
+        } else {
+
+            var app = this;
+            var finalizedResult = result;
+
+            // Modify specific fields that were changed during DSE>ES migration
+            // Add more fields here as needed
+            if ('description' in result)  {
+                finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
+    	       finalizedResult.descriptions	= app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+                delete finalizedResult.description;
+            }
+            if ('descriptions' in result)  {
+                finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.descriptions, url);
+                finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+            }
+
+            if ('prices' in result) {
+                finalizedResult.prices          = app.finalizeFieldAsListOfObjects('prices', result.prices, url);
+                var newFinalizedPriceList = [];
+                for (i = 0; i < finalizedResult.prices.length; i++) {
+                    var newPriceObject = app.finalizePriceObject(finalizedResult.prices[i]);
+                    newFinalizedPriceList.push(newPriceObject);
+                }
+                finalizedResult.prices = newFinalizedPriceList;
+            }
+            if ('reviews' in result) {
+                finalizedResult.reviews         = app.finalizeFieldAsListOfObjects('reviews', result.reviews, url);
+            }
+            if ('sku' in result) {
+                finalizedResult.skus            = app.finalizeFieldAsListOfObjects('sku', result.sku, url);
+                finalizedResult.skus            = app.finalizeObjectList(finalizedResult.skus, 'sku', 'value');
+                delete finalizedResult.sku;
+            }
+            if ('quantity' in result) {
+                finalizedResult.quantities     = app.finalizeFieldAsListOfObjects('quantity', result.quantity, url);
+                finalizedResult.quantities     = app.finalizeObjectList(finalizedResult.quantities, 'quantity', 'value');
+                delete finalizedResult.quantity;
+            }
+          
+            // Add a dateSeen to descriptions
+            if ('descriptions' in finalizedResult)
+                for (var i = 0; i < finalizedResult.descriptions.length; i++) {
+                    var dateSeen = new Date();
+                    finalizedResult.descriptions[i].dateSeen = [];
+                    finalizedResult.descriptions[i].dateSeen.push(dateSeen);            
+                }
+          
+            if ('merchants' in finalizedResult)
+                for (var i = 0; i < finalizedResult.merchants.length; i++) {
+                    var dateSeen = new Date();
+                    finalizedResult.merchants[i].dateSeen = [];
+                    finalizedResult.merchants[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('prices' in finalizedResult)
+                for (var i = 0; i < finalizedResult.prices.length; i++) {
+                    var dateSeen = new Date();
+                    finalizedResult.prices[i].dateSeen = [];
+                    finalizedResult.prices[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('quantities' in finalizedResult) {
+                for (var i = 0; i < finalizedResult.quantities.length; i++) {
+                    var dateSeen = new Date();
+                    finalizedResult.quantities[i].dateSeen = [];
+                    finalizedResult.quantities[i].dateSeen.push(dateSeen);
+                }
+
+            }
+
+            if ('reviews' in finalizedResult)
+                for (var i = 0; i < finalizedResult.reviews.length; i++) {
+                    var dateSeen = new Date();
+                    finalizedResult.reviews[i].dateSeen = [];
+                    finalizedResult.reviews[i].dateSeen.push(dateSeen);            
+                }
+
+            // Make sure data type is correct
+            if ('data_type' in result) {
+                finalizedResult.dataType = result.data_type;
+                delete finalizedResult.data_type;
+            }
+            finalizedResult.dataType = app.finalizeDataType(result.dataType);
+          
+            // add sourceURL to record, strip out 80flags
+            var sourceURLs = [];
+            sourceURLs.push(app.strip80flagFromURL(url));
+            finalizedResult.sourceURLs = sourceURLs;
+         
+            return finalizedResult;
         }
-      
-      // Make sure data type is correct
-      if ('data_type' in result) {
-        finalizedResult.dataType = result.data_type;
-        delete finalizedResult.data_type;
-      }
-      finalizedResult.dataType = app.finalizeDataType(result.dataType);
-      
-      // add sourceURL to record, strip out 80flags
-      var sourceURLs = [];
-      sourceURLs.push(app.strip80flagFromURL(url));
-      finalizedResult.sourceURLs = sourceURLs;
-     
-      return finalizedResult;
-    }
-  };
+    };
 }; //function: EightyApp
 
 module.exports = EightyApp;
