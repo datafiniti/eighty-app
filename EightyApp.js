@@ -1288,7 +1288,7 @@ var EightyApp = function() {
         return false
     }
 
-// Return an object where object.key = value and object.sourceURL = url
+ // Return an object where object.key = value and object.sourceURL = url
   this.convertElementToObjectWithSourceURL = function (key, value, url) {
 
     var newObject = {};
@@ -1305,6 +1305,21 @@ var EightyApp = function() {
     obj.sourceURLs.push(this.strip80flagFromURL(url));
     return obj;
   };
+
+  // Converts a string to a list of strings.  Returns the list.
+  this.finalizeFieldAsList = function(fieldValue) {
+
+    if (fieldValue.constructor === Array) {
+        return fieldValue;
+    } else if (typeof fieldValue === "string") {
+        var fieldList = new Array();
+        fieldList.push(fieldValue);
+
+        return fieldList;
+    } else {
+        return false;
+    }
+  } 
     
   // Return a list of objects, with each object containing a sourceURL attribute.
   // If old value is a string, it will set the key of the new object to the name of the old key.
@@ -1596,6 +1611,16 @@ var EightyApp = function() {
                     finalizedResult.reviews[i].dateSeen = [];
                     finalizedResult.reviews[i].dateSeen.push(dateSeen);            
                 }
+
+            // Fix legacy upc field
+            if ('upc' in result) {
+                finalizedResult.upc = app.finalizeFieldAsList(result.upc);
+            }
+
+            // Fix legacy upc field
+            if ('ean' in result) {
+                finalizedResult.ean = app.finalizeFieldAsList(result.ean);
+            }            
 
             // Make sure data type is correct
             if ('data_type' in result) {
