@@ -30,14 +30,14 @@ var EightyApp = function() {
         })
     }
     
-    this.version = "1.7";
+    this.version = "1.8";
 
     /**
      * For each value in an array, removes any trailing whitespace
      * @param {Array} array array of strings to trim
      * @return {Array} retruns the input array with each item being trimed
      */
-     this.trimAll = function(array) {
+    this.trimAll = function(array) {
     if (array !== null && array instanceof Array && array.length > 0)
         for (var i = 0; i < array.length; i++) {
         if (typeof array[i] === 'string' || array[i] instanceof String) {
@@ -1288,7 +1288,7 @@ var EightyApp = function() {
         return false
     }
 
- // Return an object where object.key = value and object.sourceURL = url
+  // Return an object where object.key = value and object.sourceURL = url
   this.convertElementToObjectWithSourceURL = function (key, value, url) {
 
     var newObject = {};
@@ -1456,6 +1456,25 @@ var EightyApp = function() {
     return newPriceObject;
   }
 
+  this.finalizeFeatures = function(featureObject) {
+
+    var newFeatureObject = [];
+
+    if (featureObject.constructor === Array) {
+      for (var i = 0; i < featureObject.length; i++) {
+        var feature = featureObject[i];
+        if (typeof feature.value === "string") {
+          feature.value = new Array(feature.value);
+        }
+        newFeatureObject.push(feature);
+      }
+      return newFeatureObject;
+    } else {
+      return featureObject;
+    }
+
+  }
+
   // Map any legacy data type values to new/current data type values
   this.finalizeDataType = function(dataType) {
     
@@ -1543,7 +1562,7 @@ var EightyApp = function() {
             // Add more fields here as needed
             if ('description' in result)  {
                 finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
-    	       finalizedResult.descriptions	= app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+    	          finalizedResult.descriptions	  = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
                 delete finalizedResult.description;
             }
             if ('descriptions' in result)  {
@@ -1574,7 +1593,7 @@ var EightyApp = function() {
                 delete finalizedResult.quantity;
             }
           
-            // Add a dateSeen to descriptions
+            // Add a dateSeen to various fields
             if ('descriptions' in finalizedResult)
                 for (var i = 0; i < finalizedResult.descriptions.length; i++) {
                     var dateSeen = new Date();
@@ -1596,14 +1615,12 @@ var EightyApp = function() {
                     finalizedResult.prices[i].dateSeen.push(dateSeen);            
                 }
 
-            if ('quantities' in finalizedResult) {
+            if ('quantities' in finalizedResult)
                 for (var i = 0; i < finalizedResult.quantities.length; i++) {
                     var dateSeen = new Date();
                     finalizedResult.quantities[i].dateSeen = [];
                     finalizedResult.quantities[i].dateSeen.push(dateSeen);
                 }
-
-            }
 
             if ('reviews' in finalizedResult)
                 for (var i = 0; i < finalizedResult.reviews.length; i++) {
@@ -1612,12 +1629,16 @@ var EightyApp = function() {
                     finalizedResult.reviews[i].dateSeen.push(dateSeen);            
                 }
 
+
+            if ('features' in result)
+              finalizedResult.features = app.finalizeFeatures(result.features);
+
             // Fix legacy upc field
             if ('upc' in result) {
                 finalizedResult.upc = app.finalizeFieldAsList(result.upc);
             }
 
-            // Fix legacy upc field
+            // Fix legacy ean field
             if ('ean' in result) {
                 finalizedResult.ean = app.finalizeFieldAsList(result.ean);
             }            
@@ -1637,6 +1658,7 @@ var EightyApp = function() {
             return finalizedResult;
         }
     };
+
 }; //function: EightyApp
 
 module.exports = EightyApp;
