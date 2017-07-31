@@ -30,7 +30,7 @@ var EightyApp = function() {
         })
     }
     
-    this.version = "1.8";
+    this.version = "1.9";
 
     /**
      * For each value in an array, removes any trailing whitespace
@@ -363,19 +363,42 @@ var EightyApp = function() {
     //replaces dollar sign notation into dollar amounts to capture price range details
     this.getPriceRangeReplace = function(text, currency) {
         if(!text || !currency){
-            return "";
+            return {};
         }
 
-        if (currency == "USD") {
-            var priceRange = text.replace("$$$$", "Above USD 55.00").replace("$$$", "USD 50.00-55.00").replace("$$", "USD 25.00-40.00").replace("$", "USD 0.00-25.00");
-            return priceRange;
-        } else if (currency == "GBP") {
-            var priceRange = text.replace("££££", "Above GBP 35.00").replace("£££", "GBP 30.00-35.00").replace("££", "GBP 15.00-25.00").replace("£", "GBP 0.00-15.00");
-            return priceRange;
+        var priceRangeObj = {}
+
+        if (currency === "USD") {
+            priceRangeObj.priceRangeCurrency = 'USD';
+            if (text === '$$$$') {
+                priceRangeObj.priceRangeMin = 55;
+            } else if (text === '$$$') {
+                priceRangeObj.priceRangeMin = 40;
+                priceRangeObj.priceRangeMax = 55;
+            } else if (text === '$$') {
+                priceRangeObj.priceRangeMin = 25;
+                priceRangeObj.priceRangeMax = 40;
+            } else if (text === '$') {
+                priceRangeObj.priceRangeMin = 0;
+                priceRangeObj.priceRangeMax = 25;
+            }
+        } else if (currency === "GBP") {
+            priceRangeObj.priceRangeCurrency = 'GBP';
+            if (text === '££££') {
+                priceRangeObj.priceRangeMin = 35;
+            } else if (text === '£££') {
+                priceRangeObj.priceRangeMin = 25;
+                priceRangeObj.priceRangeMax = 35;
+            } else if (text === '££') {
+                priceRangeObj.priceRangeMin = 15;
+                priceRangeObj.priceRangeMax = 25;
+            } else if (text === '£') {
+                priceRangeObj.priceRangeMin = 0;
+                priceRangeObj.priceRangeMax = 15;
+            }
         }
-        else{
-            return text;
-        }
+
+        return priceRangeObj;
 
     };
 
@@ -1092,11 +1115,12 @@ var EightyApp = function() {
     };
     // converts text formatting to camel case
     // EX: string input => EXAMPLE string output => Example
-    // code borrorwed from: http://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript
+    // code borrorwed from: https://stackoverflow.com/questions/11933577/javascript-convert-unicode-string-to-title-case
     this.getProperCase = function(string) {
         var string = string;
-        return string.replace(/\w\S*/g, function(txt) {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        
+        return string.replace(/([^\s:\-])([^\s:\-]*)/g, function($0,$1,$2) {
+            return $1.toUpperCase() + $2.toLowerCase();
         });
     };
 
