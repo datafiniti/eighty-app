@@ -1092,11 +1092,12 @@ var EightyApp = function() {
     };
     // converts text formatting to camel case
     // EX: string input => EXAMPLE string output => Example
-    // code borrorwed from: http://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript
+    // code borrorwed from: https://stackoverflow.com/questions/11933577/javascript-convert-unicode-string-to-title-case
     this.getProperCase = function(string) {
         var string = string;
-        return string.replace(/\w\S*/g, function(txt) {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        
+        return string.replace(/([^\s:\-])([^\s:\-]*)/g, function($0,$1,$2) {
+            return $1.toUpperCase() + $2.toLowerCase();
         });
     };
 
