@@ -1586,7 +1586,7 @@ var EightyApp = function() {
             // Add more fields here as needed
             if ('description' in result)  {
                 finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
-    	          finalizedResult.descriptions	  = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+    	        finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
                 delete finalizedResult.description;
             }
             if ('descriptions' in result)  {
@@ -1653,6 +1653,12 @@ var EightyApp = function() {
                     finalizedResult.reviews[i].dateSeen.push(dateSeen);            
                 }
 
+            if ('rooms' in finalizedResult)
+                for (var i = 0; i < finalizedResult.rooms.length; i++) {
+                    var dateSeen = new Date();
+                    finalizedResult.rooms[i].dateSeen = [];
+                    finalizedResult.rooms[i].dateSeen.push(dateSeen);            
+                }
 
             if ('features' in result)
               finalizedResult.features = app.finalizeFeatures(result.features);
