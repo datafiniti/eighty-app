@@ -1564,6 +1564,7 @@ var EightyApp = function() {
         var coeff = 1000 * 60;
         var date = new Date();
         var rounded = new Date(Math.round(date.getTime() / coeff) * coeff)
+        return rounded
     };
 
     // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
