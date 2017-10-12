@@ -30,7 +30,7 @@ var EightyApp = function() {
         })
     }
     
-    this.version = "1.9";
+    this.version = "2.0";
 
     /**
      * For each value in an array, removes any trailing whitespace
@@ -1560,6 +1560,12 @@ var EightyApp = function() {
     return urlWithout80flag;
   };
 
+    this.getNearestDateMinute = function () {
+        var coeff = 1000 * 60;
+        var date = new Date();
+        var rounded = new Date(Math.round(date.getTime() / coeff) * coeff)
+    };
+
     // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
     this.finalizeRecord = function(result, url) {
  
@@ -1620,42 +1626,42 @@ var EightyApp = function() {
             // Add a dateSeen to various fields
             if ('descriptions' in finalizedResult)
                 for (var i = 0; i < finalizedResult.descriptions.length; i++) {
-                    var dateSeen = new Date();
+                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.descriptions[i].dateSeen = [];
                     finalizedResult.descriptions[i].dateSeen.push(dateSeen);            
                 }
           
             if ('merchants' in finalizedResult)
                 for (var i = 0; i < finalizedResult.merchants.length; i++) {
-                    var dateSeen = new Date();
+                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.merchants[i].dateSeen = [];
                     finalizedResult.merchants[i].dateSeen.push(dateSeen);            
                 }
 
             if ('prices' in finalizedResult)
                 for (var i = 0; i < finalizedResult.prices.length; i++) {
-                    var dateSeen = new Date();
+                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.prices[i].dateSeen = [];
                     finalizedResult.prices[i].dateSeen.push(dateSeen);            
                 }
 
             if ('quantities' in finalizedResult)
                 for (var i = 0; i < finalizedResult.quantities.length; i++) {
-                    var dateSeen = new Date();
+                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.quantities[i].dateSeen = [];
                     finalizedResult.quantities[i].dateSeen.push(dateSeen);
                 }
 
             if ('reviews' in finalizedResult)
                 for (var i = 0; i < finalizedResult.reviews.length; i++) {
-                    var dateSeen = new Date();
+                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.reviews[i].dateSeen = [];
                     finalizedResult.reviews[i].dateSeen.push(dateSeen);            
                 }
 
             if ('rooms' in finalizedResult)
                 for (var i = 0; i < finalizedResult.rooms.length; i++) {
-                    var dateSeen = new Date();
+                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.rooms[i].dateSeen = [];
                     finalizedResult.rooms[i].dateSeen.push(dateSeen);            
                 }
