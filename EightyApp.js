@@ -25,9 +25,7 @@ var EightyApp = function() {
      * @param {String} msg The string to output
      */
     this.say = function(msg) {
-        process.send({
-            message: msg.toString()
-        })
+        console.log('app.say has been deprecated, please use `console.log` instead');
     }
     
     this.version = "2.0";
