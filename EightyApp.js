@@ -25,9 +25,7 @@ var EightyApp = function() {
      * @param {String} msg The string to output
      */
     this.say = function(msg) {
-        process.send({
-            message: msg.toString()
-        })
+        console.log('app.say has been deprecated, please use `console.log` instead');
     }
     
     this.version = "2.0";
@@ -1567,7 +1565,6 @@ var EightyApp = function() {
         return rounded
     };
 
-    // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
     this.finalizeRecord = function(result, url) {
  
         // check if result is empty
@@ -1593,7 +1590,7 @@ var EightyApp = function() {
             // Add more fields here as needed
             if ('description' in result)  {
                 finalizedResult.descriptions    = app.finalizeFieldAsListOfObjects('description', result.description, url);
-    	        finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
+                finalizedResult.descriptions    = app.finalizeObjectList(finalizedResult.descriptions, 'description', 'value');
                 delete finalizedResult.description;
             }
             if ('descriptions' in result)  {
@@ -1619,52 +1616,141 @@ var EightyApp = function() {
                 delete finalizedResult.sku;
             }
             if ('quantity' in result) {
-                finalizedResult.quantities     = app.finalizeFieldAsListOfObjects('quantity', result.quantity, url);
-                finalizedResult.quantities     = app.finalizeObjectList(finalizedResult.quantities, 'quantity', 'value');
+                finalizedResult.quantities      = app.finalizeFieldAsListOfObjects('quantity', result.quantity, url);
+                finalizedResult.quantities      = app.finalizeObjectList(finalizedResult.quantities, 'quantity', 'value');
                 delete finalizedResult.quantity;
+            }
+            if ('availableDates' in result) {
+                finalizedResult.availableDates  = app.finalizeFieldAsListOfObjects('availableDates', result.availableDates, url);
+            }
+            if ('deposits' in result) {
+                finalizedResult.deposits        = app.finalizeFieldAsListOfObjects('deposits', result.deposits, url);
+            }
+            if ('fees' in result) {
+                finalizedResult.fees            = app.finalizeFieldAsListOfObjects('fees', result.fees, url);
+            }
+            if ('leasingTerms' in result) {
+                finalizedResult.leasingTerms    = app.finalizeFieldAsListOfObjects('leasingTerms', result.leasingTerms, url);
+            }
+            if ('managedBy' in result) {
+                finalizedResult.managedBy       = app.finalizeFieldAsListOfObjects('managedBy', result.managedBy, url);
+            }
+            if ('nearbySchools' in result) {
+                finalizedResult.nearbySchools   = app.finalizeFieldAsListOfObjects('nearbySchools', result.nearbySchools, url);
+            }
+            if ('propertyTaxes' in result) {
+                finalizedResult.propertyTaxes   = app.finalizeFieldAsListOfObjects('propertyTaxes', result.propertyTaxes, url);
+            }
+            if ('statuses' in result) {
+                finalizedResult.statuses        = app.finalizeFieldAsListOfObjects('statuses', result.statuses, url);
+            }
+            if ('unavailableDates' in result) {
+                finalizedResult.unavailableDates = app.finalizeFieldAsListOfObjects('unavailableDates', result.unavailableDates, url);
             }
           
             // Add a dateSeen to various fields
+            var dateSeen = app.getNearestDateMinute();
+
             if ('descriptions' in finalizedResult)
                 for (var i = 0; i < finalizedResult.descriptions.length; i++) {
-                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.descriptions[i].dateSeen = [];
                     finalizedResult.descriptions[i].dateSeen.push(dateSeen);            
                 }
           
             if ('merchants' in finalizedResult)
                 for (var i = 0; i < finalizedResult.merchants.length; i++) {
-                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.merchants[i].dateSeen = [];
                     finalizedResult.merchants[i].dateSeen.push(dateSeen);            
                 }
 
             if ('prices' in finalizedResult)
                 for (var i = 0; i < finalizedResult.prices.length; i++) {
-                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.prices[i].dateSeen = [];
                     finalizedResult.prices[i].dateSeen.push(dateSeen);            
                 }
 
             if ('quantities' in finalizedResult)
                 for (var i = 0; i < finalizedResult.quantities.length; i++) {
-                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.quantities[i].dateSeen = [];
                     finalizedResult.quantities[i].dateSeen.push(dateSeen);
                 }
 
             if ('reviews' in finalizedResult)
                 for (var i = 0; i < finalizedResult.reviews.length; i++) {
-                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.reviews[i].dateSeen = [];
                     finalizedResult.reviews[i].dateSeen.push(dateSeen);            
                 }
 
             if ('rooms' in finalizedResult)
                 for (var i = 0; i < finalizedResult.rooms.length; i++) {
-                    var dateSeen = app.getNearestDateMinute();
                     finalizedResult.rooms[i].dateSeen = [];
                     finalizedResult.rooms[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('availableDates' in finalizedResult)
+                for (var i = 0; i < finalizedResult.availableDates.length; i++) {
+                    finalizedResult.availableDates[i].dateSeen = [];
+                    finalizedResult.availableDates[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('brokers' in finalizedResult)
+                for (var i = 0; i < finalizedResult.brokers.length; i++) {
+                    finalizedResult.brokers[i].dateSeen = [];
+                    finalizedResult.brokers[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('deposits' in finalizedResult)
+                for (var i = 0; i < finalizedResult.deposits.length; i++) {
+                    finalizedResult.deposits[i].dateSeen = [];
+                    finalizedResult.deposits[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('fees' in finalizedResult)
+                for (var i = 0; i < finalizedResult.fees.length; i++) {
+                    finalizedResult.fees[i].dateSeen = [];
+                    finalizedResult.fees[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('leasingTerms' in finalizedResult)
+                for (var i = 0; i < finalizedResult.leasingTerms.length; i++) {
+                    finalizedResult.leasingTerms[i].dateSeen = [];
+                    finalizedResult.leasingTerms[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('managedBy' in finalizedResult)
+                for (var i = 0; i < finalizedResult.managedBy.length; i++) {
+                    finalizedResult.managedBy[i].dateSeen = [];
+                    finalizedResult.managedBy[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('nearbySchools' in finalizedResult)
+                for (var i = 0; i < finalizedResult.nearbySchools.length; i++) {
+                    finalizedResult.nearbySchools[i].dateSeen = [];
+                    finalizedResult.nearbySchools[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('people' in finalizedResult)
+                for (var i = 0; i < finalizedResult.people.length; i++) {
+                    finalizedResult.people[i].dateSeen = [];
+                    finalizedResult.people[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('propertyTaxes' in finalizedResult)
+                for (var i = 0; i < finalizedResult.propertyTaxes.length; i++) {
+                    finalizedResult.propertyTaxes[i].dateSeen = [];
+                    finalizedResult.propertyTaxes[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('statuses' in finalizedResult)
+                for (var i = 0; i < finalizedResult.statuses.length; i++) {
+                    finalizedResult.statuses[i].dateSeen = [];
+                    finalizedResult.statuses[i].dateSeen.push(dateSeen);            
+                }
+
+            if ('unavailableDates' in finalizedResult)
+                for (var i = 0; i < finalizedResult.unavailableDates.length; i++) {
+                    finalizedResult.unavailableDates[i].dateSeen = [];
+                    finalizedResult.unavailableDates[i].dateSeen.push(dateSeen);            
                 }
 
             if ('features' in result)
@@ -1695,7 +1781,7 @@ var EightyApp = function() {
             return finalizedResult;
         }
     };
-
+    
 }; //function: EightyApp
 
 module.exports = EightyApp;
