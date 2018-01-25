@@ -595,6 +595,7 @@ var EightyApp = function() {
         "American Samoa": "AS",
         "Angola": "AO",
         "Antigua and Barbuda": "AG",
+        "Antigua": "AG",
         "Argentina": "AR",
         "Armenia": "AM",
         "Aruba": "AW",
