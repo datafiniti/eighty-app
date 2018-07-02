@@ -16,6 +16,10 @@ const $ = require('cheerio')
   * are currently crawling.
   */
 const getExternal = function (links, $html, url) {
+  if (!url) {
+    return links;
+  }
+
     // Use a set so we don't duplicate any links
   let externalLinks = new Set()
 
@@ -23,7 +27,13 @@ const getExternal = function (links, $html, url) {
   const subDomainRegex = new RegExp(/^\w+./g)
 
     // Get the host, remove any Subdomain
-  let host = urlLib.parse(url).host
+  let host;
+
+  try {
+    host = urlLib.parse(url).host
+  } catch (e) {
+    return links;
+  }
 
   if (host.split('.').length > 2) {
     host = host.replace(subDomainRegex, '')
@@ -32,11 +42,17 @@ const getExternal = function (links, $html, url) {
     // Get each link on the page
   $html.find('a').each((i, link) => {
     const href = $(link).attr('href')
+    
+    let linkHost
 
-    let linkHost = urlLib.parse(href).host
+    try {
+      linkHost = urlLib.parse(href).host
+    } catch (e) {
+      return; // Do nothing with this href
+    }
 
-        // Remove any subdomain
-    if (linkHost && linkHost.split('.').length > 2) {
+    // Remove any subdomain
+    if (typeof linkHost === 'string' && linkHost && linkHost.split('.').length > 2) {
       linkHost = linkHost.replace(subDomainRegex, '')
     }
 
@@ -122,6 +138,10 @@ const fullPageContent = function (resultsObject, $html) {
    * matches the host of the url we are crawling, we collect it
    */
 const crawlInternal = function (links, $html, url) {
+  if (!url) {
+    return links;
+  }
+
     // Use a set so we don't duplicate any links
   let internalLinks = new Set()
 
@@ -129,7 +149,13 @@ const crawlInternal = function (links, $html, url) {
   const subDomainRegex = new RegExp(/^\w+./g)
 
     // Get the host, remove any Subdomain
-  let host = urlLib.parse(url).host
+  let host;
+
+  try {
+    host = urlLib.parse(url).host
+  } catch (e) {
+    return links;
+  }
 
   if (host.split('.').length > 2) {
     host = host.replace(subDomainRegex, '')
@@ -138,11 +164,17 @@ const crawlInternal = function (links, $html, url) {
     // Get each link on the page
   $html.find('a').each((i, link) => {
     const href = $(link).attr('href')
+    
+    let linkHost
 
-    let linkHost = urlLib.parse(href).host
+    try {
+      linkHost = urlLib.parse(href).host
+    } catch (e) {
+      return; // Do nothing with this href
+    }
 
-        // Remove any subdomain
-    if (linkHost && linkHost.split('.').length > 2) {
+    // Remove any subdomain
+    if (typeof linkHost === 'string' && linkHost && linkHost.split('.').length > 2) {
       linkHost = linkHost.replace(subDomainRegex, '')
     }
 
