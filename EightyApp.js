@@ -13,7 +13,9 @@ STANDARDS FOR WRITING NEW FUNCTIONS
    Functions that return text should instead return an empty string upon receiving bad input.
 ****************************/
 
-var EightyApp = function() {
+const builderApps = require('./builderApps');
+
+var EightyAppBase = function() {
     var authStatus;
 
     var initialize = function() {
@@ -25,11 +27,20 @@ var EightyApp = function() {
      * @param {String} msg The string to output
      */
     this.say = function(msg) {
-        console.log('app.say has been deprecated, please use `console.log` instead');
+        process.send({
+            message: msg.toString()
+        })
     }
     
-    this.version = "2.0";
+    this.version = "3.0";
 
+    // Add all 80appBuilder apps to the base 80app
+    // These should only be used from within the 80appBuilder on the
+    // new version of the 80legs Portal
+    Object.keys(builderApps).forEach(app => {
+        this[app] = builderApps[app];
+    });
+    
     /**
      * For each value in an array, removes any trailing whitespace
      * @param {Array} array array of strings to trim
@@ -67,6 +78,43 @@ var EightyApp = function() {
         text = text.replace(/(<img)\+*?/g, "<img80");
         return $(text);
     };
+
+    this.extractHostname = function(url) {
+        var hostname;
+        //find & remove protocol (http, ftp, etc.) and get hostname
+
+        if (url.indexOf("://") > -1) {
+            hostname = url.split('/')[2];
+        }
+        else {
+            hostname = url.split('/')[0];
+        }
+
+        //find & remove port number
+        hostname = hostname.split(':')[0];
+        //find & remove "?"
+        hostname = hostname.split('?')[0];
+
+        return hostname;
+    }
+
+    this.extractRootDomain = function(url) {
+        var domain = this.extractHostname(url),
+            splitArr = domain.split('.'),
+            arrLen = splitArr.length;
+
+        //extracting the root domain here
+        //if there is a subdomain 
+        if (arrLen > 2) {
+            domain = splitArr[arrLen - 2] + '.' + splitArr[arrLen - 1];
+            //check to see if it's using a Country Code Top Level Domain (ccTLD) (i.e. ".me.uk")
+            if (splitArr[arrLen - 2].length == 2 && splitArr[arrLen - 1].length == 2) {
+                //this is using a ccTLD
+                domain = splitArr[arrLen - 3] + '.' + domain;
+            }
+        }
+        return domain;
+    }
 
     /*
      * Removes any special characters from a string
@@ -360,7 +408,7 @@ var EightyApp = function() {
 
     //replaces dollar sign notation into dollar amounts to capture price range details
     this.getPriceRangeReplace = function(text, currency) {
-        if(!text || !currency){
+        if (!text || !currency){
             return {};
         }
 
@@ -394,10 +442,37 @@ var EightyApp = function() {
                 priceRangeObj.priceRangeMin = 0;
                 priceRangeObj.priceRangeMax = 15;
             }
+        } else if (currency === "YEN") {
+            priceRangeObj.priceRangeCurrency = 'YEN';
+            if (text === '¥¥¥¥') {
+                priceRangeObj.priceRangeMin = 6175;
+            } else if (text === '¥¥¥') {
+                priceRangeObj.priceRangeMin = 4491;
+                priceRangeObj.priceRangeMax = 6175;
+            } else if (text === '¥¥') {
+                priceRangeObj.priceRangeMin = 2807;
+                priceRangeObj.priceRangeMax = 4491;
+            } else if (text === '¥') {
+                priceRangeObj.priceRangeMin = 0;
+                priceRangeObj.priceRangeMax = 2807;
+            }
+        } else if (currency === "EUR") {
+            priceRangeObj.priceRangeCurrency = 'EUR';
+            if (text === '€€€€') {
+                priceRangeObj.priceRangeMin = 47;
+            } else if (text === '€€€') {
+                priceRangeObj.priceRangeMin = 34;
+                priceRangeObj.priceRangeMax = 47;
+            } else if (text === '€€') {
+                priceRangeObj.priceRangeMin = 21;
+                priceRangeObj.priceRangeMax = 34;
+            } else if (text === '€') {
+                priceRangeObj.priceRangeMin = 0;
+                priceRangeObj.priceRangeMax = 21;
+            }
         }
 
         return priceRangeObj;
-
     };
 
     // converts a price string into ####.##
@@ -465,6 +540,7 @@ var EightyApp = function() {
             "ê": "e",
             "ë": "e",
             "ě": "e",
+            "œ": "oe",
             "ì": "i",
             "í": "i",
             "î": "i",
@@ -480,6 +556,7 @@ var EightyApp = function() {
             "û": "u",
             "ý": "y",
             "ÿ": "y",
+            "ž": "z",
             "À": "A",
             "Á": "A",
             "Â": "A",
@@ -500,7 +577,8 @@ var EightyApp = function() {
             "Ù": "U",
             "Ú": "U",
             "Û": "U",
-            "Ý": "Y"
+            "Ý": "Y",
+            "Ž": "Z"
         };
 
         var replacementRegEx = new RegExp(Object.keys(translate).join("|"), "g");
@@ -618,10 +696,14 @@ var EightyApp = function() {
         "Bolivia": "BO",
         "Bonaire": "BQ",
         "Botswana": "BW",
+        "Bouvet Island": "BV",
         "Brazil": "BR",
         "British Virgin Islands": "VG",
         "UK Virgin Islands": "VG",
-        "Brunei": "BX",
+        "British Indian Ocean Territory": "IO",
+        "Brunei Darussalam": "BN",
+        "Brunei": "BN",
+        "Burkina Faso": "BF",
         "Bulgaria": "BG",
         "Burundi": "BI",
         "Cambodia": "KH",
@@ -644,6 +726,12 @@ var EightyApp = function() {
         "Cuba": "CU",
         "Curacao": "CW",
         "Cyprus": "CY",
+        "Christmas Island": "CX",
+        "Cocos Islands": "CC",
+        "Central African Republic": "CF" ,
+        "Comoros": "KM",
+        "Congo": "CG",
+        "Democratic Republic of the Congo": "CD",
         "Denmark": "DK",
         "Djibouti": "DJ",
         "Dominica": "DM",
@@ -652,9 +740,12 @@ var EightyApp = function() {
         "Egypt": "EG",
         "El Salvador": "SV",
         "England": "GB",
+        "Equatorial Guinea": "GQ",
         "Eritrea": "ER",
         "Estonia": "EE",
         "Ethiopia": "ET",
+        "Falkland Islands (Malvinas)": "FK",
+        "Malvinas": "FK",
         "Faroe Islands": "FO",
         "Federated States of Micronesia": "FM",
         "Figi": "FJ",
@@ -662,10 +753,13 @@ var EightyApp = function() {
         "France": "FR",
         "French Guiana": "GF",
         "French Polynesia": "PF",
+        "French Southern Territories": "TF",
+        "Gabon": "GA",
         "Gambia": "GM",
         "Georgia": "GE",
         "Germany": "DE",
         "Ghana": "GH",
+        "Gibraltar": "GI",
         "Greece": "GR",
         "Grenada": "GD",
         "Greenland": "GL",
@@ -678,6 +772,9 @@ var EightyApp = function() {
         "Hong Kong": "HK",
         "Hungary": "HU",
         "Honduras": "HN",
+        "Heard Island and McDonald Mcdonald Islands": "HM",
+        "Holy See": "VA",
+        "Isle of Man": "IM",
         "Iceland": "IS",
         "Ireland": "IE",
         "India": "IN",
@@ -688,10 +785,13 @@ var EightyApp = function() {
         "Italy": "IT",
         "Jamaica": "JM",
         "Japan": "JP",
+        "Jersey": "JE",
         "Jordan": "JO",
         "Kazakhstan": "KZ",
         "Kenya": "KE",
         "Kiribati": "KI",
+        "Democratic People's Republic of Korea": "KP",
+        "Republic of Korea": "KR",
         "Kosovo": "XK",
         "Kuwait": "KW",
         "Kyrgyzstan": "KG",
@@ -699,6 +799,7 @@ var EightyApp = function() {
         "Latvia": "LV",
         "Lebanon": "LB",
         "Lesotho": "LS",
+        "Liberia": "LR",
         "Libyia": "LY",
         "Liechtenstein": "LI",
         "Lithuania": "LT",
@@ -714,6 +815,7 @@ var EightyApp = function() {
         "Martinique": "MQ",
         "Mauritania": "MR",
         "Mauritius": "MU",
+        "Mayotte": "YT",
         "Mexico": "MX",
         "Moldova": "MD",
         "Monaco": "MC",
@@ -755,6 +857,7 @@ var EightyApp = function() {
         "Reunion Island": "RE",
         "Romania": "RO",
         "Russia": "RU",
+        "Rwanda": "RW",
         "Saba": "BQ",
         "Saint Barthelemy": "BL",
         "Saint Eustacius": "BQ",
@@ -779,15 +882,21 @@ var EightyApp = function() {
         "Senegal": "SN",
         "Serbia": "RS",
         "Seychelles": "SC",
+        "Sierra Leone": "SL",
         "Singapore": "SG",
         "Slovakia": "SK",
         "Slovenia": "SI",
         "Solomon Islands": "SB",
+        "Somalia": "SO",
+        "South Georgia and the South Sandwich Islands": "GS",
+        "South Sudan": "SS",
         "South Africa": "ZA",
         "South Korea": "KR",
         "Spain": "ES",
         "Sri Lanka": "LK",
         "Suriname": "SR",
+        "Sudan": "SD",
+        "Svalbard and Jan Mayen": "SJ",
         "Swaziland": "SZ",
         "Sweden": "SE",
         "Switzerland": "CH",
@@ -817,6 +926,7 @@ var EightyApp = function() {
         "United States": "US",
         "United States of America": "US",
         "United States Virgin Islands": "VI",
+        "United States Minor Outlying Islands": "UM",
         "Uruguay": "UY",
         "Uzbekistan": "UZ",
         "U.S. Virgin Islands": "VI",
@@ -831,6 +941,7 @@ var EightyApp = function() {
         "Yemen": "YE",
         "Zambia": "ZM",
         "Zimbabwe": "ZW",
+        "Aland Islands": "AX",
         "AFG": "AF",
         "ALB": "AL",
         "DZA": "DZ",
@@ -1133,6 +1244,7 @@ var EightyApp = function() {
             return unixCommentDate;
         }
     };
+
     // converts text formatting to camel case
     // EX: string input => EXAMPLE string output => Example
     // code borrorwed from: https://stackoverflow.com/questions/11933577/javascript-convert-unicode-string-to-title-case
@@ -1142,6 +1254,7 @@ var EightyApp = function() {
         return string.replace(/([^\s:\-])([^\s:\-]*)/g, function($0,$1,$2) {
             return $1.toUpperCase() + $2.toLowerCase();
         });
+
     };
 
     //***************************
@@ -1571,22 +1684,25 @@ var EightyApp = function() {
     }
   };
     
-  // Remove the 80flag parameter from a URL
-  this.strip80flagFromURL = function (url) {
+    // Remove the 80flag parameter from a URL
+    this.strip80flagFromURL = function (url) {
     
-    var urlWithout80flag = url;
-    if ((url.indexOf("?80flag=") == -1) || (url.indexOf("&80flag=") == -1))
-      urlWithout80flag = this.removeURLParameter(url,"80flag");
-    return urlWithout80flag;
-  };
+        var urlWithout80flag = url;
+        if ((url.indexOf("?80flag=") == -1) || (url.indexOf("&80flag=") == -1))
+            urlWithout80flag = this.removeURLParameter(url,"80flag");
+        return urlWithout80flag;
+    };
+
 
     this.getNearestDateMinute = function () {
+
         var coeff = 1000 * 60;
         var date = new Date();
         var rounded = new Date(Math.round(date.getTime() / coeff) * coeff)
-        return rounded
-    };
+        return rounded;
+    }
 
+    // A method for finalizing a crawl record.  This method prepares a record for import into Datafiniti.  It updates it from any legacy settings.
     this.finalizeRecord = function(result, url) {
  
         // check if result is empty
@@ -1803,7 +1919,30 @@ var EightyApp = function() {
             return finalizedResult;
         }
     };
-    
-}; //function: EightyApp
 
-module.exports = EightyApp;
+};//function: EightyAppBase
+
+// The following is included to make this testable with node.js
+try {
+    if (module != null) {
+        var $ = this.$ = "";
+    }
+} catch (e) {}
+this.processTest = function(html, url, headers, status) {
+    var app = this;
+    var env = require('jsdom').env;
+    env(html, function(errors, window) {
+        $ = this.$ = require('jquery')(window);
+        var result = app.processDocument(html, url, headers, status, $);
+        console.log(result);
+        var links = app.parseLinks(html, url, headers, status, $);
+        console.log(links);
+    });
+}
+
+try {
+    // Testing
+    module.exports = EightyAppBase;
+} catch (e) {
+    // Production
+}
