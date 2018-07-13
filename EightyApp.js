@@ -366,8 +366,11 @@ var EightyAppBase = function() {
             }//if: endIndex was not found on an ampersand
 
             var eightyValue = trimmedURL.substring('80flag='.length, endIndex);
+<<<<<<< HEAD
             // Decode 80value so that the return value matches parameter passed to append80FlagToLink()
             eightyValue = decodeURIComponent(eightyValue);
+=======
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
             return eightyValue;
         }
         return null;
@@ -1557,6 +1560,7 @@ var EightyAppBase = function() {
 
     // Return an object where object.key = value and object.sourceURL = url
     this.convertElementToObjectWithSourceURL = function (key, value, url) {
+<<<<<<< HEAD
 
         var newObject = {};
         newObject[key] = value;
@@ -1582,6 +1586,33 @@ var EightyAppBase = function() {
             var fieldList = new Array();
             fieldList.push(fieldValue);
 
+=======
+
+        var newObject = {};
+        newObject[key] = value;
+        newObject.sourceURLs = new Array();
+        newObject.sourceURLs.push(this.strip80flagFromURL(url));
+
+        return newObject;
+    };
+
+    this.addSourceURLToObject = function (obj, url) {
+
+        obj.sourceURLs = new Array();
+        obj.sourceURLs.push(this.strip80flagFromURL(url));
+        return obj;
+    };
+
+    // Converts a string to a list of strings.  Returns the list.
+    this.finalizeFieldAsList = function(fieldValue) {
+
+        if (fieldValue.constructor === Array) {
+            return fieldValue;
+        } else if (typeof fieldValue === 'string') {
+            var fieldList = new Array();
+            fieldList.push(fieldValue);
+
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
             return fieldList;
         } else {
             return false;
@@ -1616,6 +1647,7 @@ var EightyAppBase = function() {
                         newFieldList.push(app.addSourceURLToObject(oldFieldElement,url));
                     }
                 }
+<<<<<<< HEAD
 
                 // Option 3: The field is a single object. We need to add sourceURL if needed. Then we push to an array.
             } else {
@@ -1710,6 +1742,102 @@ var EightyAppBase = function() {
             newPriceObject.isSale = 'true';
             delete newPriceObject.salePrice;
 
+=======
+
+                // Option 3: The field is a single object. We need to add sourceURL if needed. Then we push to an array.
+            } else {
+                newFieldList.push(app.addSourceURLToObject(oldField,url));
+            }
+
+            // Option 4: The field type is undefined.. this shouldn't happen.
+        } else {
+
+        }
+
+        return newFieldList;
+    };
+
+    // Maps key names to new key names in a list of objects
+    this.finalizeObjectList = function(objectList, oldKeyName, newKeyName) {
+
+        var newObjectList = [];
+
+        for (var i = 0; i < objectList.length; i++) {
+            var objectElement = objectList[i];
+            if (oldKeyName in objectElement) {
+                objectElement[newKeyName] = objectElement[oldKeyName];
+                delete objectElement[oldKeyName];
+            }
+
+            newObjectList.push(objectElement);
+        }
+
+        return newObjectList;
+    };
+
+    // Splits price value strings into currency and amount attributes.  Returns an object.
+    this.finalizePrice = function(priceString) {
+        var priceObject = {};
+        var priceStringREOne = new RegExp('[A-Z]{3} [0-9,.]{1,}');
+        var priceStringRETwo = new RegExp('[A-Z]{3} [0-9,.]{1,} - [A-Z]{3} [0-9,.]{1,}');
+
+        // Option 1: priceString is like "USD ###"
+        if (priceStringREOne.test(priceString)) {
+
+            let priceStringArr = priceString.split(' ');
+            let priceCurrency = priceStringArr[0];
+            let priceAmount = parseFloat(priceStringArr[1]);
+
+            priceObject.currency = priceCurrency;
+            priceObject.amountMin = priceAmount;
+            priceObject.amountMax = priceAmount;
+
+            // Option 2: priceString is like "USD ### - USD ###"
+        } else if (priceStringRETwo.test(priceString)) {
+
+            let priceStringArr = priceString.split(' - ');
+            let priceRangeMin = priceStringArr[0];
+            let priceRangeMax = priceStringArr[1];
+
+            var priceRangeMinArr = priceRangeMin.split(' ');
+            var priceRangeMaxArr = priceRangeMax.split(' ');
+
+            var priceCurrency = priceRangeMinArr[0];
+            var priceAmountMin = parseFloat(priceRangeMinArr[1]);
+            var priceAmountMax = parseFloat(priceRangeMaxArr[1]);
+
+            priceObject.currency = priceCurrency;
+            priceObject.amountMin = priceAmountMin;
+            priceObject.amountMax = priceAmountMax;
+
+        }
+
+        return priceObject;
+    };
+
+    // Maps legacy price objects to new price object format.
+    this.finalizePriceObject = function(priceObject) {
+
+        var newPriceObject = priceObject;
+
+        if ('price' in priceObject) {
+            var newPriceObjFromString = this.finalizePrice(priceObject.price);
+
+            newPriceObject.currency = newPriceObjFromString.currency;
+            newPriceObject.amountMin = newPriceObjFromString.amountMin;
+            newPriceObject.amountMax = newPriceObjFromString.amountMax;
+            delete newPriceObject.price;
+
+        } else if ('salePrice' in priceObject) {
+            let newPriceObjFromString = this.finalizePrice(priceObject.salePrice);
+
+            newPriceObject.currency = newPriceObjFromString.currency;
+            newPriceObject.amountMin = newPriceObjFromString.amountMin;
+            newPriceObject.amountMax = newPriceObjFromString.amountMax;
+            newPriceObject.isSale = 'true';
+            delete newPriceObject.salePrice;
+
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
         } else if ('priceRange' in priceObject) {
             let newPriceObjFromString = this.finalizePrice(priceObject.priceRange);
 

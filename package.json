@@ -1,13 +1,14 @@
 {
   "name": "eighty-app",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "description": "A class that people can extend to create their own custom scraper to use on 80legs.com",
   "author": "datafiniti",
   "main": "EightyApp.js",
   "dependencies": {
     "chai": "^1.10.0",
-    "cheerio": "^0.18.0",
-    "mocha": "^2.0.1"
+    "cheerio": "^0.22.0",
+    "lodash": "^4.17.10",
+    "mocha": "^5.2.0"
   },
   "scripts": {
     "test": "mocha test"

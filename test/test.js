@@ -136,9 +136,136 @@ describe('isValid', function() {
     let expected;
     let actual;
     before (function() {
+<<<<<<< HEAD
+=======
         eightyApp = new EightyAppBase();
     });
 
+    it ('returns false if object is falsey', function(done) {
+        testObj = null;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = undefined;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = NaN;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '';
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns false for empty containers', function(done) {
+        testObj = [];
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = {};
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns false for negative numbers and strings with just whitespace', function(done) {
+        testObj = -1;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = -1.0;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = -0.0001;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '    ';
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns false for empty DOM elements', function(done) {
+        let $ = cheerio.load('<h2 class="test">This is test HTML</h2>');
+        testObj = $('not_a_tag');
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns true for all other values', function(done) {
+        testObj = [''];
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = { a : '' };
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = -0;
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = 'this is a test';
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        let $ = cheerio.load('<h2 class="valid_selector">This is test HTML</h2>');
+        testObj = $('.valid_selector');
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+});
+
+/* UPDATES: 7-6-2018
+ * Testing: Functionalilty of removeAllDuplicates function
+ * 80app: Added removeAllDuplicates function that compares objects as well as primitives
+ */
+describe('removeAllDuplicates', function() {
+    before(function() {
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
+        eightyApp = new EightyAppBase();
+        expected = {};
+        actual = {};
+    });
+
+    it ('returns null when called on primitive or array', function(done) {
+        // primitives
+        expected = null;
+        actual = eightyApp.removeAllDuplicates(5);
+        expect(expected).to.equal(actual);
+        actual = eightyApp.removeAllDuplicates('hello world');
+        expect(expected).to.equal(actual);
+
+        // Array
+        actual = eightyApp.removeAllDuplicates([1,2,2]);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+<<<<<<< HEAD
     it ('returns false if object is falsey', function(done) {
         testObj = null;
         expected = false;
@@ -262,6 +389,8 @@ describe('removeAllDuplicates', function() {
         done();
     });
 
+=======
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
     it ('has no effect on non-list fields', function(done) {
         testObj = { a : 'a', b : 'a' };
         expected = testObj;
@@ -654,6 +783,7 @@ describe('append80FlagToLink ', function(){
         eightyValue = 'test';
         test = eightyApp.append80FlagToLink(eightyValue, link);
         expect(test).to.equal('http://www.test.com?flag1=do&flag2=not&flag3=modify&80flag=test');
+<<<<<<< HEAD
         done();
     });
     it('Handles 80flags with URI forbidden characters', function(done) {
@@ -666,6 +796,8 @@ describe('append80FlagToLink ', function(){
         eightyValue = '["Sports Nutrition & Workout Support"]';
         test = eightyApp.append80FlagToLink(eightyValue, link);
         expect(test).to.equal('https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340&80flag=%5B%22Sports%20Nutrition%20%26%20Workout%20Support%22%5D');
+=======
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
         done();
     });
 });//describe: "append80FlagToLink"
@@ -727,6 +859,7 @@ describe('get80Value', function(){
         url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?parameter1=bad&80flag=test2&parameter2=alsoBad';
         test = eightyApp.get80Value(url);
         expect(test).to.equal('test2');
+<<<<<<< HEAD
         done();
     });
     it('handles URI encoded 80flags and properly decodes them', function(done) {
@@ -737,6 +870,8 @@ describe('get80Value', function(){
         url = 'https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340&80flag=%5B%22Sports%20Nutrition%20%26%20Workout%20Support%22%5D';
         test = eightyApp.get80Value(url);
         expect(test).to.equal('["Sports Nutrition & Workout Support"]');
+=======
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
         done();
     });
 });//describe: "get80Value"
@@ -1140,11 +1275,19 @@ describe('removeExtraWhitespace', function(){
         let string = 'a  b  c  d  e';
         let test = eightyApp.removeExtraWhitespace(string);
         expect(test).to.equal('a b c d e');
+<<<<<<< HEAD
 
         string = 'a  b\t\tc\r\rd\n\ne\v\vf\f\fg';
         test = eightyApp.removeExtraWhitespace(string);
         expect(test).to.equal('a b c d e f g');
 
+=======
+
+        string = 'a  b\t\tc\r\rd\n\ne\v\vf\f\fg';
+        test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('a b c d e f g');
+
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
         string = 'a \tb\t\rc\r\nd\n\ve\v\ff\f g';
         test = eightyApp.removeExtraWhitespace(string);
         expect(test).to.equal('a b c d e f g');
@@ -1790,6 +1933,8 @@ describe('finalizeRecord', function(){
                 'manufacturerNumber': 'EF-60T-125E-3N',
                 'sourceURLs': [
                     'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
+<<<<<<< HEAD
+=======
                 ]
             },
             {
@@ -1799,12 +1944,25 @@ describe('finalizeRecord', function(){
                 'manufacturerNumber': 'EF-60T-150E-3N',
                 'sourceURLs': [
                     'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
                 ]
             },
             {
                 'dataType': 'product',
                 'brand': 'Bradford White',
                 'name': 'Ef Series Ultra High Efficiency Models',
+<<<<<<< HEAD
+                'manufacturerNumber': 'EF-60T-150E-3N',
+                'sourceURLs': [
+                    'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
+                ]
+            },
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+=======
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
                 'manufacturerNumber': 'EF-60T-199E-3N',
                 'sourceURLs': [
                     'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
@@ -1835,6 +1993,7 @@ describe('finalizeRecord', function(){
                 '0022670027554'
             ],
             'rooms': [
+<<<<<<< HEAD
                 {
                     'roomType': 'Double Room',
                     'amountMax': 124,
@@ -1844,6 +2003,17 @@ describe('finalizeRecord', function(){
                     'dateSeen': '2017-08-07T23:26:50Z'
                 },
                 {
+=======
+                {
+                    'roomType': 'Double Room',
+                    'amountMax': 124,
+                    'amountMin': 124,
+                    'capacity': 1,
+                    'currency': 'USD',
+                    'dateSeen': '2017-08-07T23:26:50Z'
+                },
+                {
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
                     'roomType':'Single Room',
                     'amountMax': 124,
                     'amountMin': 124,
@@ -1986,6 +2156,7 @@ describe('finalizeRecord', function(){
                 'http://www.80legs.com'
             ]
         };
+<<<<<<< HEAD
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
@@ -2547,10 +2718,576 @@ describe('finalizeRecord', function(){
                 'http://www.80legs.com'
             ]
         };
+=======
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
     });
+<<<<<<< HEAD
+=======
+
+    it('Finalize without UPC', function(done){
+        let currentDate = eightyApp.getNearestDateMinute();
+
+        let needleResult = {
+            dataType: 'product',
+            brand: 'Dell',
+            manufacturerNumber: '94TR3',
+            name: 'Dell 94TR3 Power Companion (12"',
+            reviews: [
+                {
+                    title: 'Can\'t imagine life without it',
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateSeen: currentDate,
+                    username: 'ByJ. Mcginnis',
+                    rating: 5.0,
+                    text: 'Was not sure I was going to need this but now I can\'t imagine life without it. Fantastic product and great life so far. Charges quickly and can charge my laptop completely while maintaining power and still have enough juice to change my phone.'
+                }
+            ]
+        };
+        let needleURL = 'https://www.amazon.com/product-reviews/B01BX263WW/ref=cm_cr_arp_d_show_all?&reviewerType=all_reviews&ie=UTF8&pageNumber=0&showViewpoints=1&sortBy=bySubmissionDateDescending&80flag=%22brand%22:%22Dell%22,%22manufacturerNumber%22:%2294TR3%22,%22name%22:%22Dell 94TR3 Power Companion (12%22';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let expectedObject = {
+            dataType: 'product',
+            brand: 'Dell',
+            manufacturerNumber: '94TR3',
+            name: 'Dell 94TR3 Power Companion (12"',
+            reviews: [
+                {
+                    title: 'Can\'t imagine life without it',
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateSeen: [currentDate],
+                    username: 'ByJ. Mcginnis',
+                    rating: 5.0,
+                    text: 'Was not sure I was going to need this but now I can\'t imagine life without it. Fantastic product and great life so far. Charges quickly and can charge my laptop completely while maintaining power and still have enough juice to change my phone.',
+                    sourceURLs: ['https://www.amazon.com/product-reviews/B01BX263WW/ref=cm_cr_arp_d_show_all?&reviewerType=all_reviews&ie=UTF8&pageNumber=0&showViewpoints=1&sortBy=bySubmissionDateDescending']
+                }
+            ],
+            sourceURLs: [
+                'https://www.amazon.com/product-reviews/B01BX263WW/ref=cm_cr_arp_d_show_all?&reviewerType=all_reviews&ie=UTF8&pageNumber=0&showViewpoints=1&sortBy=bySubmissionDateDescending'
+            ]
+        };
+
+        expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
+        done();
+    });
+
+    it('Perfectly Fine Record', function(done){
+        let currentDate = eightyApp.getNearestDateMinute();
+
+        let needleResult = {
+            dataType: 'product',
+            prices: [
+                {
+                    color: 'blue',
+                    sourceURLs: ['http://www.80legs.com'],
+                    currency: 'USD',
+                    amountMin: 5.00,
+                    amountMax: 5.00,
+                    dateSeen: [currentDate]
+                }
+            ],
+            upc: [
+                '0000000000'
+            ],
+            ean: [
+                '0000000000'
+            ],
+            descriptions: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: 'This is a description.',
+                    dateSeen: [currentDate]
+                }
+            ],
+            skus: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: '12345'
+                }
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let expectedObject = {
+            dataType: 'product',
+            prices: [
+                {
+                    color: 'blue',
+                    sourceURLs: ['http://www.80legs.com'],
+                    currency: 'USD',
+                    amountMin: 5.00,
+                    amountMax: 5.00,
+                    dateSeen: [currentDate]
+                }
+            ],
+            upc: [
+                '0000000000'
+            ],
+            ean: [
+                '0000000000'
+            ],
+            descriptions: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: 'This is a description.',
+                    dateSeen: [currentDate]
+                }
+            ],
+            skus: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: '12345'
+                }
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
+
+        expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
+        done();
+    });
+
+    it('Legacy Property Record', function(done){
+        let needleResult = {
+            dataType: 'properties',
+            address: '123 Anywhere St',
+            availableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z'
+                }
+            ],
+            brokers: [
+                {
+                    agent: 'Sam I am',
+                    company: 'Company',
+                    emails: [
+                        'sam@company.com'
+                    ],
+                    phones: [
+                        '212-212-2122'
+                    ],
+                    websites: [
+                        'http://www.company.com'
+                    ]
+                }
+            ],
+            buildingName: 'Thunderdome',
+            city: 'Austin',
+            country: 'US',
+            deposits: [
+                {
+                    amount: 123.00,
+                    currency: 'USD'
+                }
+            ],
+            descriptions: [
+                {
+                    value: 'Fight for your life at the Thunderdome'
+                }
+            ],
+            features: [
+                {
+                    key: 'Horde size',
+                    value: 'Very large'
+                }
+            ],
+            fees: [
+                {
+                    amountMin: 2.00,
+                    amountMax: 3.00,
+                    currency: 'USD',
+                    type: 'obnoxious fee'
+                }
+            ],
+            floorSizeValue: 2000,
+            floorSizeUnit: 'Sq. ft.',
+            hours: [
+                {
+                    day: 'monday',
+                    hour: '8 am to 5 pm'
+                }
+            ],
+            languagesSpoken: [
+                'English'
+            ],
+            latitude: 23.123,
+            leasingTerms: [
+                {
+                    value: 'Defeat Tina Turner'
+                }
+            ],
+            listingName: 'Beautiful dome full of gladiatorial combat',
+            longitude: 23.123,
+            lotSizeValue: 100.00,
+            lotSizeUnit: 'sq. meters',
+            managedBy: [
+                {
+                    value: 'the queen'
+                }
+            ],
+            mlsNumber: '1234',
+            nearbySchools: [
+                {
+                    assigned: 'TRUE',
+                    address: 'the wasteland',
+                    city: 'Austin',
+                    country: 'US',
+                    distanceValue: 1.0,
+                    distanceUnit: 'miles',
+                    faxes: [
+                        '123-123-1234'
+                    ],
+                    gradeLevels: [
+                        'all ages welcome'
+                    ],
+                    name: 'Kiddie Kombat',
+                    phonese: [
+                        '123-123-1234'
+                    ],
+                    postalCode: '78701',
+                    province: 'TX'
+                }
+            ],
+            neighborhoods: [
+                'Reverbating Walnuts'
+            ],
+            numBathroom: 0,
+            numBedroom: 50,
+            numFloor: 1,
+            numPeople: 1000,
+            numRoom: 10,
+            numUnit: 2,
+            parking: [
+                'All cars will be stolen'
+            ],
+            paymentTypes: [
+                'All money will be stolen'
+            ],
+            people: [
+                {
+                    email: 'max@iammax.com',
+                    name: 'Max',
+                    phone: '123-123-1234',
+                    title: 'Mad'
+                }
+            ],
+            petPolicy: 'No dogs allowed',
+            phones: [
+                '123-123-1234'
+            ],
+            postalCode: '78701',
+            prices: [
+                {
+                    amountMin: 100.00,
+                    amountMax: 1000.00,
+                    availability: 'available',
+                    comment: 'die die die',
+                    currency: 'USD',
+                    dateValidStart: '2017-07-07T00:00:00.000Z',
+                    dateValidEnd: '2017-07-07T00:00:00.000Z',
+                    isSale: 'FALSE',
+                    minStay: 'forever',
+                    period: '1 week',
+                    pricePerSquareFoot: 10.00
+                }
+            ],
+            propertyTaxes: [
+                {
+                    amount: 5.00,
+                    currency: 'USD'
+                }
+            ],
+            province: 'TX',
+            reviews: [
+                {
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateAdded: '2017-07-07T00:00:00.000Z',
+                    doRecommend: 'TRUE',
+                    rating: 5,
+                    text: 'Saw a lovely beheading the other day.',
+                    title: 'Aw yeah',
+                    userCity: 'Houston',
+                    username: 'MetalLord2000',
+                    userProvince: 'TX'
+                }
+            ],
+            rules: [
+                'Only super cool dudes allowed'
+            ],
+            statuses: [
+                {
+                    isUnderContract: 'true',
+                    type: 'For Sale'
+                }
+            ],
+            taxID: '12345',
+            unavailableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z'
+                }
+            ],
+            websiteIDs: [
+                'domain.com-123'
+            ]
+        };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let currentDate = eightyApp.getNearestDateMinute();
+        let expectedObject = {
+            dataType: 'property',
+            address: '123 Anywhere St',
+            availableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            brokers: [
+                {
+                    agent: 'Sam I am',
+                    company: 'Company',
+                    emails: [
+                        'sam@company.com'
+                    ],
+                    phones: [
+                        '212-212-2122'
+                    ],
+                    websites: [
+                        'http://www.company.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            buildingName: 'Thunderdome',
+            city: 'Austin',
+            country: 'US',
+            deposits: [
+                {
+                    amount: 123.00,
+                    currency: 'USD',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            descriptions: [
+                {
+                    value: 'Fight for your life at the Thunderdome',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            features: [
+                {
+                    key: 'Horde size',
+                    value: [
+                        'Very large'
+                    ]
+                }
+            ],
+            fees: [
+                {
+                    amountMin: 2.00,
+                    amountMax: 3.00,
+                    currency: 'USD',
+                    type: 'obnoxious fee',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            floorSizeValue: 2000,
+            floorSizeUnit: 'Sq. ft.',
+            hours: [
+                {
+                    day: 'monday',
+                    hour: '8 am to 5 pm'
+                }
+            ],
+            languagesSpoken: [
+                'English'
+            ],
+            latitude: 23.123,
+            leasingTerms: [
+                {
+                    value: 'Defeat Tina Turner',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            listingName: 'Beautiful dome full of gladiatorial combat',
+            longitude: 23.123,
+            lotSizeValue: 100.00,
+            lotSizeUnit: 'sq. meters',
+            managedBy: [
+                {
+                    value: 'the queen',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            mlsNumber: '1234',
+            nearbySchools: [
+                {
+                    assigned: 'TRUE',
+                    address: 'the wasteland',
+                    city: 'Austin',
+                    country: 'US',
+                    distanceValue: 1.0,
+                    distanceUnit: 'miles',
+                    faxes: [
+                        '123-123-1234'
+                    ],
+                    gradeLevels: [
+                        'all ages welcome'
+                    ],
+                    name: 'Kiddie Kombat',
+                    phonese: [
+                        '123-123-1234'
+                    ],
+                    postalCode: '78701',
+                    province: 'TX',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            neighborhoods: [
+                'Reverbating Walnuts'
+            ],
+            numBathroom: 0,
+            numBedroom: 50,
+            numFloor: 1,
+            numPeople: 1000,
+            numRoom: 10,
+            numUnit: 2,
+            parking: [
+                'All cars will be stolen'
+            ],
+            paymentTypes: [
+                'All money will be stolen'
+            ],
+            people: [
+                {
+                    email: 'max@iammax.com',
+                    name: 'Max',
+                    phone: '123-123-1234',
+                    title: 'Mad',
+                    dateSeen: [currentDate]
+                }
+            ],
+            petPolicy: 'No dogs allowed',
+            phones: [
+                '123-123-1234'
+            ],
+            postalCode: '78701',
+            prices: [
+                {
+                    amountMin: 100.00,
+                    amountMax: 1000.00,
+                    availability: 'available',
+                    comment: 'die die die',
+                    currency: 'USD',
+                    dateValidStart: '2017-07-07T00:00:00.000Z',
+                    dateValidEnd: '2017-07-07T00:00:00.000Z',
+                    isSale: 'FALSE',
+                    minStay: 'forever',
+                    period: '1 week',
+                    pricePerSquareFoot: 10.00,
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            propertyTaxes: [
+                {
+                    amount: 5.00,
+                    currency: 'USD',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            province: 'TX',
+            reviews: [
+                {
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateAdded: '2017-07-07T00:00:00.000Z',
+                    doRecommend: 'TRUE',
+                    rating: 5,
+                    text: 'Saw a lovely beheading the other day.',
+                    title: 'Aw yeah',
+                    userCity: 'Houston',
+                    username: 'MetalLord2000',
+                    userProvince: 'TX',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            rules: [
+                'Only super cool dudes allowed'
+            ],
+            statuses: [
+                {
+                    isUnderContract: 'true',
+                    type: 'For Sale',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            taxID: '12345',
+            unavailableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            websiteIDs: [
+                'domain.com-123'
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
+
+        expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
+        done();
+    });
+>>>>>>> 87eaba7c07faa0869b47525dd01e5df85a1af9a8
 });
 
 /* UPDATES: 10-20-2016

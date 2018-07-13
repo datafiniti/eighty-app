@@ -1,4 +1,4 @@
-###EightyApp
+# EightyApp
 
 **description**: A class that people can extend to create their own custom scraper to use on [80legs.com](http://80legs.com/)
 
