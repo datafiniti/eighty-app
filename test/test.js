@@ -1,39 +1,321 @@
-var fs = require("fs");
-var expect = require("chai").expect;
-var cheerio = require("cheerio");
-var EightyAppBase = require("../EightyApp.js");
+let fs = require('fs');
+let expect = require('chai').expect;
+let cheerio = require('cheerio');
+let EightyAppBase = require('../EightyApp.js');
 
 /* ************************** */
 /* ***** HELPER METHODS ***** */
 /* ************************** */
 function arraysEqual(a, b) {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
-  if (a.length != b.length) return false;
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
 
-  // If you don't care about the order of the elements inside
-  // the array, you should sort both arrays here.
+    // If you don't care about the order of the elements inside
+    // the array, you should sort both arrays here.
 
-  for (var i = 0; i < a.length; ++i) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
+    for (let i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
 }
 
-//TO RUN TESTS: node_modules/mocha/bin/mocha test.js
+let eightyApp;
+let expected;
+let actual;
+let testObj;
 
-describe("parseXml", function(){
-    var sampleXml;
-    var eightyApp;
+//TO RUN TESTS: node_modules/mocha/bin/mocha test.js
+describe('parseXml', function(){
+    let sampleXml;
+
     before(function(){
-        sampleXml = fs.readFileSync(__dirname + "/fixtures/sampleXml.xml");
+        sampleXml = fs.readFileSync(__dirname + '/fixtures/sampleXml.xml');
         eightyApp = new EightyAppBase();
     });
-    it ("parses an xml string", function(done){
-        var $xml = eightyApp.parseXml(sampleXml.toString(), cheerio);
-        var test = $xml.find("product[number=1] img80").text().trim();
 
-        expect(test).to.equal("https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6173_blk_a0");
+    it ('parses an xml string', function(done){
+        let $xml = eightyApp.parseXml(sampleXml.toString(), cheerio);
+        let test = $xml.find('product[number=1] img80').text().trim();
+
+        expect(test).to.equal('https://a248.e.akamai.net/f/248/9086/10h/origin-d2.scene7.com/is/image/Coach/q6173_blk_a0');
+        done();
+    });
+});
+
+/* UPDATES: 7-6-2018
+ * Testing: Functionalilty of trimObject function
+ * 80app: Added trimObject function that trims all nested strings in an object
+ */
+describe('trimObject', function() {
+    before(function() {
+        eightyApp = new EightyAppBase();
+    });
+
+    it ('doesn\'t modify falsey values', function(done) {
+        testObj = null;
+        expected = null;
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.equal(expected);
+
+        testObj = '';
+        expected = '';
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.equal(expected);
+
+        testObj = {};
+        expected = {};
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.deep.equal(expected);
+
+        testObj = [];
+        expected = [];
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('doesn\'t modify non string elements', function(done) {
+        testObj = [1, 2, 3];
+        expected = testObj;
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('removes extra whitespace from strings', function(done) {
+        testObj = 'test';
+        expected = 'test';
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.equal(expected);
+
+        testObj = ' test ';
+        expected = 'test';
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.equal(expected);
+
+        testObj = 'this    is \n a \t\t\n test    ';
+        expected = 'this is a test';
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.equal(expected);
+        done();
+    });
+
+    it ('works on arrays', function(done) {
+        testObj = ['this  ', ' is   ', '\na', ' test '];
+        expected = ['this', 'is', 'a', 'test'];
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('works on objects', function(done) {
+        testObj = { a : ' this is \n a test   ' };
+        expected = { a : 'this is a test' };
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('works on deeply nested strings', function(done) {
+        testObj = { this : [ 'is   ', { is : [ 'a  ', { a : [ '  test '] } ] } ] };
+        expected = { this : ['is', { is : [ 'a', { a : ['test'] }] }] };
+        actual = eightyApp.trimObject(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+});
+
+/* UPDATES: 7-6-2018
+ * Testing: Functionalilty of isValid function
+ * 80app: Added isValid function that determines if a value should be returned from an extractor function
+ */
+describe('isValid', function() {
+    let testObj;
+    let eightyApp;
+    let expected;
+    let actual;
+    before (function() {
+        eightyApp = new EightyAppBase();
+    });
+
+    it ('returns false if object is falsey', function(done) {
+        testObj = null;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = undefined;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = NaN;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '';
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns false for empty containers', function(done) {
+        testObj = [];
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = {};
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns false for negative numbers and strings with just whitespace', function(done) {
+        testObj = -1;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = -1.0;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = -0.0001;
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '    ';
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns false for empty DOM elements', function(done) {
+        let $ = cheerio.load('<h2 class="test">This is test HTML</h2>');
+        testObj = $('not_a_tag');
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('returns true for all other values', function(done) {
+        testObj = [''];
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = { a : '' };
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = -0;
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = 'this is a test';
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        let $ = cheerio.load('<h2 class="valid_selector">This is test HTML</h2>');
+        testObj = $('.valid_selector');
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+});
+
+/* UPDATES: 7-6-2018
+ * Testing: Functionalilty of removeAllDuplicates function
+ * 80app: Added removeAllDuplicates function that compares objects as well as primitives
+ */
+describe('removeAllDuplicates', function() {
+    before(function() {
+        eightyApp = new EightyAppBase();
+        expected = {};
+        actual = {};
+    });
+
+    it ('returns null when called on primitive or array', function(done) {
+        // primitives
+        expected = null;
+        actual = eightyApp.removeAllDuplicates(5);
+        expect(expected).to.equal(actual);
+        actual = eightyApp.removeAllDuplicates('hello world');
+        expect(expected).to.equal(actual);
+
+        // Array
+        actual = eightyApp.removeAllDuplicates([1,2,2]);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('has no effect on non-list fields', function(done) {
+        testObj = { a : 'a', b : 'a' };
+        expected = testObj;
+        actual = eightyApp.removeAllDuplicates(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('removes duplicate primitives from list fields', function(done) {
+        testObj = { lstWithDups : [ '1', '2', '2', 2, 1, '3'] };
+        expected = { lstWithDups : [ '1', '2', 2, 1, '3'] };
+        actual = eightyApp.removeAllDuplicates(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('removes duplicate objects from list fields', function(done) {
+        let obj1 = { a : 'a' };
+        let obj2 = { a : 'a' };
+        let obj3 = { a : 'eyyyyy' };
+        testObj = { lstWithDupObjs : [ obj1, obj3, obj2 ] };
+        expected = { lstWithDupObjs : [ obj1, obj3 ] };
+        actual = eightyApp.removeAllDuplicates(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('compares strings by trimming first and case insensitive comparison', function(done) {
+        let obj1 = { a : ' this    is a test      ' };
+        let obj2 = { a : 'tHis is A Test' };
+        let obj3 = { a : 'this is also a test' };
+        testObj = { lstWithDupObjs : [ obj1, obj3, obj2 ] };
+        expected = { lstWithDupObjs : [ obj1, obj3 ] };
+        actual = eightyApp.removeAllDuplicates(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('compares deeply nested elements', function(done) {
+        let obj1 =  { a : [ { test : [ 'this is a test' ] } ] };
+        let obj2 =  { a : [ { test : [ 'this iS    a test' ] } ] };
+        testObj = { lstWithDupObjs : [ obj1, obj2 ] };
+        expected = { lstWithDupObjs : [ obj1 ] };
+        actual = eightyApp.removeAllDuplicates(testObj);
+        expect(actual).to.deep.equal(expected);
+        done();
+    });
+
+    it ('is not recursive', function(done) {
+        let obj1 = { a : [ { test : [ 1, 1, 1 ] } ] };
+        testObj = { lstWithSingleObj : [ obj1 ] };
+        expected = testObj;
+        actual = eightyApp.removeAllDuplicates(testObj);
+        expect(actual).to.deep.equal(expected);
         done();
     });
 });
@@ -43,17 +325,17 @@ describe("parseXml", function(){
  * 80app: Added code block to check for invalid input
  * IMPORTANT: have function account for array of objects.
  */
-describe("eliminateDuplicates", function(){
-    var eightyApp = new EightyAppBase();
-    //Testing variables
-    var array;
-    var test;
-    it("returns 'null' when called with no arguments", function(done){
+describe('eliminateDuplicates', function(){
+    let eightyApp = new EightyAppBase();
+    //Testing letiables
+    let array;
+    let test;
+    it('returns \'null\' when called with no arguments', function(done){
         test = eightyApp.eliminateDuplicates();
         expect(test).to.equal(null);
         done();
     });
-    it("returns 'null' when called with a false argument", function(done){
+    it('returns \'null\' when called with a false argument', function(done){
         //null
         array = null;
         test = eightyApp.eliminateDuplicates(array);
@@ -65,37 +347,37 @@ describe("eliminateDuplicates", function(){
         expect(test).to.equal(null);
         done();
     });
-    it("returns an empty array if called with an empty array", function(done){
+    it('returns an empty array if called with an empty array', function(done){
         array = [];
         test = arraysEqual([], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
         done();
     });
-    it("does not modify arrays with no duplicates", function(done){
+    it('does not modify arrays with no duplicates', function(done){
         array = [1];
         test = arraysEqual([1], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
 
-        array = ["a"];
-        test = arraysEqual(["a"], eightyApp.eliminateDuplicates(array));
+        array = ['a'];
+        test = arraysEqual(['a'], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
 
         array = [1,2,3,4,5,6,7,8,9];
         test = arraysEqual([1,2,3,4,5,6,7,8,9], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
 
-        array = ["a","b","c","d","e","f","g"];
-        test = arraysEqual(["a","b","c","d","e","f","g"], eightyApp.eliminateDuplicates(array));
+        array = ['a','b','c','d','e','f','g'];
+        test = arraysEqual(['a','b','c','d','e','f','g'], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
         done();
     });
-    it("eliminates empty elements", function(done){
-        array = ["abc", "ab", ""];
-        test = arraysEqual(["abc", "ab"], eightyApp.eliminateDuplicates(array));
-        expect(test).to.equal(true)
+    it('eliminates empty elements', function(done){
+        array = ['abc', 'ab', ''];
+        test = arraysEqual(['abc', 'ab'], eightyApp.eliminateDuplicates(array));
+        expect(test).to.equal(true);
         done();
     });
-    it("eliminates duplicates", function(done){
+    it('eliminates duplicates', function(done){
         array = [1,1];
         test = arraysEqual([1], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
@@ -116,16 +398,16 @@ describe("eliminateDuplicates", function(){
         test = arraysEqual([1,2,3,4,5,6], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
 
-        array = ["a","a"];
-        test = arraysEqual(["a"], eightyApp.eliminateDuplicates(array));
+        array = ['a','a'];
+        test = arraysEqual(['a'], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
 
-        array = ["a","a","b","b","c","c"];
-        test = arraysEqual(["a","b","c"], eightyApp.eliminateDuplicates(array));
+        array = ['a','a','b','b','c','c'];
+        test = arraysEqual(['a','b','c'], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
 
-        array = ["a","b","a","c","b","c"];
-        test = arraysEqual(["a","b","c"], eightyApp.eliminateDuplicates(array));
+        array = ['a','b','a','c','b','c'];
+        test = arraysEqual(['a','b','c'], eightyApp.eliminateDuplicates(array));
         expect(test).to.equal(true);
         done();
     });
@@ -135,158 +417,158 @@ describe("eliminateDuplicates", function(){
  * Expanded testing for false input
  * Modified 80app to handle all false input, not just 'undefined'
  */
-describe("makeLink", function(){
+describe('makeLink', function(){
     eightyApp = new EightyAppBase();
-    it("appends the path to the domain", function(done){
-        var domain = "www.80legs.com";
-        var link = "/index.html";
-        var test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/index.html");
+    it('appends the path to the domain', function(done){
+        let domain = 'www.80legs.com';
+        let link = '/index.html';
+        let test = eightyApp.makeLink(domain, link);
+        expect(test).to.equal('http://www.80legs.com/index.html');
 
-        domain = "http://www.80legs.com/";
-        link = "/plans.html";
+        domain = 'http://www.80legs.com/';
+        link = '/plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/plans.html");
+        expect(test).to.equal('http://www.80legs.com/plans.html');
 
-        domain = "http://www.80legs.com";
-        link = "plans.html";
+        domain = 'http://www.80legs.com';
+        link = 'plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/plans.html");
+        expect(test).to.equal('http://www.80legs.com/plans.html');
 
-        domain = "http://www.80legs.com/";
-        link = "plans.html";
+        domain = 'http://www.80legs.com/';
+        link = 'plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/plans.html");
+        expect(test).to.equal('http://www.80legs.com/plans.html');
 
-        domain = "http://www.80legs.com";
-        link = "/plans.html";
+        domain = 'http://www.80legs.com';
+        link = '/plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/plans.html");
+        expect(test).to.equal('http://www.80legs.com/plans.html');
 
-        domain = "80legs.com";
-        link = "/plans.html";
+        domain = '80legs.com';
+        link = '/plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://80legs.com/plans.html");
+        expect(test).to.equal('http://80legs.com/plans.html');
 
-        domain = "http://80legs.com";
-        link = "80legs.com/plans.html";
+        domain = 'http://80legs.com';
+        link = '80legs.com/plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://80legs.com/plans.html");
+        expect(test).to.equal('http://80legs.com/plans.html');
 
-        domain = "http://80legs.com";
-        link = "http://www.80legs.com/plans.html";
+        domain = 'http://80legs.com';
+        link = 'http://www.80legs.com/plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/plans.html");
+        expect(test).to.equal('http://www.80legs.com/plans.html');
 
-        domain = "www.80legs.com";
-        link = "80legs.com/plans.html";
+        domain = 'www.80legs.com';
+        link = '80legs.com/plans.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://80legs.com/plans.html");
+        expect(test).to.equal('http://80legs.com/plans.html');
 
-        domain = "www.80legs.com";
-        link = "/";
+        domain = 'www.80legs.com';
+        link = '/';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/");
+        expect(test).to.equal('http://www.80legs.com/');
 
-        domain = "www.80legs.com/en/contact/";
-        link = "/prices.html";
+        domain = 'www.80legs.com/en/contact/';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/prices.html");
+        expect(test).to.equal('http://www.80legs.com/prices.html');
 
-        domain = "www.80legs.co.uk/en/contact/";
-        link = "/prices.html";
+        domain = 'www.80legs.co.uk/en/contact/';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.co.uk/prices.html");
+        expect(test).to.equal('http://www.80legs.co.uk/prices.html');
 
-        domain = "www.80legs.com?q=dog:bark";
-        link = "/prices.html";
+        domain = 'www.80legs.com?q=dog:bark';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/prices.html");
+        expect(test).to.equal('http://www.80legs.com/prices.html');
 
-        domain = "www.80legs.co.uk?q=dog:bark";
-        link = "/prices.html";
+        domain = 'www.80legs.co.uk?q=dog:bark';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.co.uk/prices.html");
+        expect(test).to.equal('http://www.80legs.co.uk/prices.html');
 
-        domain = "http://80legs.co.uk?q=dog:bark";
-        link = "/prices.html";
+        domain = 'http://80legs.co.uk?q=dog:bark';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://80legs.co.uk/prices.html");
+        expect(test).to.equal('http://80legs.co.uk/prices.html');
 
-        domain = "http://www.80legs.co.uk?q=dog:bark";
-        link = "/prices.html";
+        domain = 'http://www.80legs.co.uk?q=dog:bark';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.co.uk/prices.html");
+        expect(test).to.equal('http://www.80legs.co.uk/prices.html');
 
-        domain = "https://80legs.com/en/contact/";
-        link = "/prices.html";
+        domain = 'https://80legs.com/en/contact/';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("https://80legs.com/prices.html");
+        expect(test).to.equal('https://80legs.com/prices.html');
 
-        domain = "https://80legs.com/en/contact/index.html";
-        link = "/prices.html";
+        domain = 'https://80legs.com/en/contact/index.html';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("https://80legs.com/prices.html");
+        expect(test).to.equal('https://80legs.com/prices.html');
 
-        domain = "https://80legs.com/index.html";
-        link = "/prices.html";
+        domain = 'https://80legs.com/index.html';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("https://80legs.com/prices.html");
+        expect(test).to.equal('https://80legs.com/prices.html');
 
-        domain = "https://www.80legs.com/en/contact/";
-        link = "/prices.html";
+        domain = 'https://www.80legs.com/en/contact/';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("https://www.80legs.com/prices.html");
+        expect(test).to.equal('https://www.80legs.com/prices.html');
 
-        domain = "www.beef-is-smelly.co.uk?q=dog:bark";
-        link = "/prices.html";
+        domain = 'www.beef-is-smelly.co.uk?q=dog:bark';
+        link = '/prices.html';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.beef-is-smelly.co.uk/prices.html");
+        expect(test).to.equal('http://www.beef-is-smelly.co.uk/prices.html');
 
-        domain = "www.80legs.com/";
-        link = "/";
+        domain = 'www.80legs.com/';
+        link = '/';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/");
+        expect(test).to.equal('http://www.80legs.com/');
 
-        domain = "www.80legs.com";
-        link = "#";
+        domain = 'www.80legs.com';
+        link = '#';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/#");
+        expect(test).to.equal('http://www.80legs.com/#');
 
-        domain = "www.80legs.com/";
-        link = "#";
+        domain = 'www.80legs.com/';
+        link = '#';
         test = eightyApp.makeLink(domain, link);
-        expect(test).to.equal("http://www.80legs.com/#");
+        expect(test).to.equal('http://www.80legs.com/#');
 
         done();
     });//it: ("appends the path to the domain")
 
-    it("returns 'null' when called with no arguments", function(done){
-        var test = eightyApp.makeLink();
+    it('returns \'null\' when called with no arguments', function(done){
+        let test = eightyApp.makeLink();
         expect(test).to.equal(null);
         done();
     });
 
-    it("returns the input argument when called with only one argument", function(done){
-        var domain = "www.80legs.com";
-        var test = eightyApp.makeLink(domain);
-        expect(test).to.equal("www.80legs.com");
+    it('returns the input argument when called with only one argument', function(done){
+        let domain = 'www.80legs.com';
+        let test = eightyApp.makeLink(domain);
+        expect(test).to.equal('www.80legs.com');
         done();
     });
 
-    it("returns the domain when called with a false href", function(done){
-        var domain = "www.80legs.com";
-        var href = undefined;
-        var test = eightyApp.makeLink(domain, href);
-        expect(test).to.equal("www.80legs.com");
+    it('returns the domain when called with a false href', function(done){
+        let domain = 'www.80legs.com';
+        let href = undefined;
+        let test = eightyApp.makeLink(domain, href);
+        expect(test).to.equal('www.80legs.com');
         done();
     });
 
-    it("returns the href when called with a false domain", function(done){
-        var domain = undefined;
-        var href = "/prices.html";
-        var test = eightyApp.makeLink(domain, href);
-        expect(test).to.equal("/prices.html");
+    it('returns the href when called with a false domain', function(done){
+        let domain = undefined;
+        let href = '/prices.html';
+        let test = eightyApp.makeLink(domain, href);
+        expect(test).to.equal('/prices.html');
         done();
     });
 });
@@ -295,351 +577,422 @@ describe("makeLink", function(){
  * Testing: Expanded coverage for invalid input handling, added coverage for proper function behavior
  * 80app: Fixed adding flags to links with a '&' at the end
  */
-describe("append80FlagToLink ", function(){
-    var eightyApp = new EightyAppBase();
-    it("returns 'null' when called with no arguments", function(done){
-        var test = eightyApp.append80FlagToLink();
+describe('append80FlagToLink ', function(){
+    let eightyApp = new EightyAppBase();
+    it('returns \'null\' when called with no arguments', function(done){
+        let test = eightyApp.append80FlagToLink();
         expect(test).to.equal(null);
         done();
     });
-    it("returns eighty value when called with false link", function(done){
-        var eightyValue = "defined";
+    it('returns eighty value when called with false link', function(done){
+        let eightyValue = 'defined';
 
         //null
-        var link = null;
-        var test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("defined");
+        let link = null;
+        let test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('defined');
 
         //undefined
         link = undefined;
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("defined");
+        expect(test).to.equal('defined');
 
         //empty string
-        link = "";
+        link = '';
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("defined");
+        expect(test).to.equal('defined');
         done();
     });
-    it("returns link when called with false eighty value", function(done){
-        var link = "http://www.test.com/";
+    it('returns link when called with false eighty value', function(done){
+        let link = 'http://www.test.com/';
 
         //null
-        var eightyValue = null;
-        var test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com/");
+        let eightyValue = null;
+        let test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('http://www.test.com/');
 
         //undefined
         eightyValue = undefined;
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com/");
+        expect(test).to.equal('http://www.test.com/');
 
         //empty string
-        eightyValue = "";
+        eightyValue = '';
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com/");
+        expect(test).to.equal('http://www.test.com/');
         done();
     });
-    it("appends 80flag to links without any flags", function(done){
-        var link = "http://www.test.com";
-        var eightyValue = "test";
-        var test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com?80flag=test");
+    it('appends 80flag to links without any flags', function(done){
+        let link = 'http://www.test.com';
+        let eightyValue = 'test';
+        let test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('http://www.test.com?80flag=test');
 
-        link = "http://www.test.com/";
-        eightyValue = "test";
+        link = 'http://www.test.com/';
+        eightyValue = 'test';
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com/?80flag=test");
+        expect(test).to.equal('http://www.test.com/?80flag=test');
 
-        link = "http://www.test.com?";
-        eightyValue = "test";
+        link = 'http://www.test.com?';
+        eightyValue = 'test';
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com?80flag=test");
+        expect(test).to.equal('http://www.test.com?80flag=test');
         done();
     });
-    it("appends 80flag to links with existing flags", function(done){
-        var link = "http://www.test.com?flag=donotmodify";
-        var eightyValue = "test";
-        var test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com?flag=donotmodify&80flag=test");
+    it('appends 80flag to links with existing flags', function(done){
+        let link = 'http://www.test.com?flag=donotmodify';
+        let eightyValue = 'test';
+        let test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('http://www.test.com?flag=donotmodify&80flag=test');
 
-        link = "http://www.test.com?flag=donotmodify&";
-        eightyValue = "test";
+        link = 'http://www.test.com?flag=donotmodify&';
+        eightyValue = 'test';
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com?flag=donotmodify&80flag=test");
+        expect(test).to.equal('http://www.test.com?flag=donotmodify&80flag=test');
 
-        link = "http://www.test.com?flag1=do&flag2=not&flag3=modify";
-        eightyValue = "test";
+        link = 'http://www.test.com?flag1=do&flag2=not&flag3=modify';
+        eightyValue = 'test';
         test = eightyApp.append80FlagToLink(eightyValue, link);
-        expect(test).to.equal("http://www.test.com?flag1=do&flag2=not&flag3=modify&80flag=test");
+        expect(test).to.equal('http://www.test.com?flag1=do&flag2=not&flag3=modify&80flag=test');
+        done();
+    });
+    it('Handles 80flags with URI forbidden characters', function(done) {
+        let link = 'http://www.test.com/';
+        let eightyValue = 'a test with ampersands & questionmarks ?';
+        let test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('http://www.test.com/?80flag=a%20test%20with%20ampersands%20%26%20questionmarks%20%3F');
+
+        link = 'https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340';
+        eightyValue = '["Sports Nutrition & Workout Support"]';
+        test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340&80flag=%5B%22Sports%20Nutrition%20%26%20Workout%20Support%22%5D');
         done();
     });
 });//describe: "append80FlagToLink"
 
-describe("get80Value", function(){
-    var eightyApp = new EightyAppBase();
-    it("returns null if null is passed in as an argument", function(done){
-        var url = null;
-        var test = eightyApp.get80Value(url);
+describe('get80Value', function(){
+    eightyApp = new EightyAppBase();
+
+    it('returns null if null is passed in as an argument', function(done){
+        let url = null;
+        let test = eightyApp.get80Value(url);
         expect(test).to.equal(null);
         done();
     });
-    it("returns null if undefined is passed in as an argument", function(done){
-        var url = undefined;
-        var test = eightyApp.get80Value(url);
+
+    it('returns null if undefined is passed in as an argument', function(done){
+        let url = undefined;
+        let test = eightyApp.get80Value(url);
         expect(test).to.equal(null);
         done();
     });
-    it("returns null if a url is passed in that has no 80flag", function(done){
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003";
-        var test = eightyApp.get80Value(url);
+
+    it('returns null if a url is passed in that has no 80flag', function(done){
+        let url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003';
+        let test = eightyApp.get80Value(url);
         expect(test).to.equal(null);
         done();
     });
-    it("returns an empty string if the 80flag= query parameter has no value", function(done){
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003&80flag=";
-        var test = eightyApp.get80Value(url);
+
+    it('returns an empty string if the 80flag= query parameter has no value', function(done){
+        let url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003&80flag=';
+        let test = eightyApp.get80Value(url);
         expect(test).to.equal('');
         done();
     });
-    it("returns null if the word 80flag is in the string with no value", function(done){
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003&80flag";
-        var test = eightyApp.get80Value(url);
+
+    it('returns null if the word 80flag is in the string with no value', function(done){
+        let url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003&80flag';
+        let test = eightyApp.get80Value(url);
         expect(test).to.equal(null);
         done();
     });
-    it("returns the eighty value if there is one", function(done){
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003&80flag=test1";
-        var test = eightyApp.get80Value(url);
-        expect(test).to.equal("test1");
 
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?80flag=test2";
-        var test = eightyApp.get80Value(url);
-        expect(test).to.equal("test2");
+    it('returns the eighty value if there is one', function(done){
+        let url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?id=pcmcat333800050003&80flag=test1';
+        let test = eightyApp.get80Value(url);
+        expect(test).to.equal('test1');
+
+        url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?80flag=test2';
+        test = eightyApp.get80Value(url);
+        expect(test).to.equal('test2');
         done();
     });
-    it("returns only the eighty value if followed by another parameter", function(done){
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?80flag=test1&parameter=bad";
-        var test = eightyApp.get80Value(url);
-        expect(test).to.equal("test1");
 
-        var url = "http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?parameter1=bad&80flag=test2&parameter2=alsoBad";
-        var test = eightyApp.get80Value(url);
-        expect(test).to.equal("test2");
+    it('returns only the eighty value if followed by another parameter', function(done){
+        let url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?80flag=test1&parameter=bad';
+        let test = eightyApp.get80Value(url);
+        expect(test).to.equal('test1');
+
+        url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?parameter1=bad&80flag=test2&parameter2=alsoBad';
+        test = eightyApp.get80Value(url);
+        expect(test).to.equal('test2');
+        done();
+    });
+    it('handles URI encoded 80flags and properly decodes them', function(done) {
+        let url = 'http://www.test.com/?80flag=a%20test%20with%20ampersands%20%26%20questionmarks%20%3F';
+        let test = eightyApp.get80Value(url);
+        expect(test).to.equal('a test with ampersands & questionmarks ?');
+
+        url = 'https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340&80flag=%5B%22Sports%20Nutrition%20%26%20Workout%20Support%22%5D';
+        test = eightyApp.get80Value(url);
+        expect(test).to.equal('["Sports Nutrition & Workout Support"]');
         done();
     });
 });//describe: "get80Value"
 
 //IMPORTANT: Fix punctuation regex!
-describe("getPlainText", function(){
-    var eightyApp = new EightyAppBase();
+describe('getPlainText', function(){
+    let eightyApp = new EightyAppBase();
 
     //TEST CASES FROM removeExtraWhitespace - behavior should be the same
-    it("returns empty string for false input", function(done){
-        var string = undefined;
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("");
+    it('returns empty string for false input', function(done){
+        let string = undefined;
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('');
 
         string = null;
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
 
-        string = "";
+        string = '';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
         done();
     });
-    it("removes beginning and end whitespaces", function(done){
+
+    it('removes beginning and end whitespaces', function(done){
         //Trailing space
-        var string = "test ";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        let string = 'test ';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('test');
 
         //Beginning space
-        string = " test";
+        string = ' test';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
         //Spaces on both ends
-        string = " test ";
+        string = ' test ';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
         //Double spaces on both ends
-        string = "  test  ";
+        string = '  test  ';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
         done();
 
         //Other whitespace on both ends
-        string = "\ttest\r";
+        string = '\ttest\r';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
-        string = "\ntest\v";
+        string = '\ntest\v';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
-        string = "\ftest ";
+        string = '\ftest ';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
         //Removes double whitespace on both ends
-        string = "\t\rtest\n\v";
+        string = '\t\rtest\n\v';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
-        string = "\v\ftest\r\t";
+        string = '\v\ftest\r\t';
         test = eightyApp.getPlainText(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
     });
-    it("removes multiple whitespace", function(done){
-        var string = "a  b  c  d  e";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("a b c d e");
 
-        var string = "a  b\t\tc\r\rd\n\ne\v\vf\f\fg";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("a b c d e f g");
+    it('removes multiple whitespace', function(done){
+        let string = 'a  b  c  d  e';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('a b c d e');
 
-        var string = "a \tb\t\rc\r\nd\n\ve\v\ff\f g";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("a b c d e f g");
+        string = 'a  b\t\tc\r\rd\n\ne\v\vf\f\fg';
+        test = eightyApp.getPlainText(string);
+        expect(test).to.equal('a b c d e f g');
+
+        string = 'a \tb\t\rc\r\nd\n\ve\v\ff\f g';
+        test = eightyApp.getPlainText(string);
+        expect(test).to.equal('a b c d e f g');
         done();
     });
-    it("changes all whitespace characters to space", function(done){
-        var string = "a b\tc\rd\ne\vf\fg";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("a b c d e f g");
+
+    it('changes all whitespace characters to space', function(done){
+        let string = 'a b\tc\rd\ne\vf\fg';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('a b c d e f g');
         done();
     });
 
     //TEST CASES EXCLUSIVE TO: getPlainText
-    it("preserves A-Z characters, ignoring case", function(done){
-        var string = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    it('preserves A-Z characters, ignoring case', function(done){
+        let string = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ');
         done();
     });
-    it("preserves 0-9 characters", function(done){
-        var string = "0 1 2 3 4 5 6 7 8 9";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("0 1 2 3 4 5 6 7 8 9");
+
+    it('preserves 0-9 characters', function(done){
+        let string = '0 1 2 3 4 5 6 7 8 9';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('0 1 2 3 4 5 6 7 8 9');
         done();
     });
-    it("preserves certain [.'-:!] punctuation", function(done){ //NOTE: Weird behavior here regarding '-: -> ask Moe about it
-        var string = "a.b'c-d:e!f";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("a.b'c-d:e!f");
+
+    it('preserves certain [.\'-:!] punctuation', function(done){ //NOTE: Weird behavior here regarding '-: -> ask Moe about it
+        let string = 'a.b\'c-d:e!f';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('a.b\'c-d:e!f');
         done();
     });
-    it("removes special characters", function(done){
-        var string = "ÄäÇçĞğİıÖöŞşÜüßàáâãèéêëěìíîïñòóôõřùúûýÿÀÁÂÃÈÉÊËÌÍÎÏÑÒÓÔÕÙÚÛÝ";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("");
+
+    it('removes special characters', function(done){
+        let string = 'ÄäÇçĞğİıÖöŞşÜüßàáâãèéêëěìíîïñòóôõřùúûýÿÀÁÂÃÈÉÊËÌÍÎÏÑÒÓÔÕÙÚÛÝ';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('');
         done();
     });
-    it("removes non-allowed punctuation", function(done){ //NOTE: Expand here after discussion with Moe
-        var string = "a;b";
-        var test = eightyApp.getPlainText(string);
-        expect(test).to.equal("ab");
+
+    it('removes non-allowed punctuation', function(done){ //NOTE: Expand here after discussion with Moe
+        let string = 'a;b';
+        let test = eightyApp.getPlainText(string);
+        expect(test).to.equal('ab');
         done();
     });
 });//describe: "getPlainText"
 
+describe('getProperCase', function(){
+    eightyApp = new EightyAppBase();
+
+    it('US city', function(done){
+        let arg0 = 'san diego';
+        let test = eightyApp.getProperCase(arg0);
+        expect(test).to.equal('San Diego');
+        done();
+    });
+
+    it('Foreign city', function(done){
+        let arg0 = 'cuidado íntimo';
+        let test = eightyApp.getProperCase(arg0);
+        expect(test).to.equal('Cuidado Íntimo');
+        done();
+    });
+
+    it('Fon du lac', function(done){
+        let arg0 = 'fon du lac';
+        let test = eightyApp.getProperCase(arg0);
+        expect(test).to.equal('Fon Du Lac');
+        done();
+    });
+
+    it('Lake in the hills', function(done){
+        let arg0 = 'lake in the hills';
+        let test = eightyApp.getProperCase(arg0);
+        expect(test).to.equal('Lake In The Hills');
+        done();
+    });
+});
 
 /* UPDATES: 8/10/2015
  * Added block to catch invalid input
  * Added 'else' to return just the text if a non-recognized currency is input
  */
-describe("getPriceRangeReplace", function(){
-    var eightyApp = new EightyAppBase();
-    it("returns empty string when called with no arguments", function(done){
-        var test = eightyApp.getPriceRangeReplace();
-        expect(test).to.equal("");
+describe('getPriceRangeReplace', function(){
+    eightyApp = new EightyAppBase();
+
+    it('returns empty object when called with no arguments', function(done){
+        let test = eightyApp.getPriceRangeReplace();
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
         done();
     });
-    it("returns empty string when called with false text", function(done){
+
+    it('returns empty object when called with false text', function(done){
         //null
-        var arg0 = null;
-        var test = eightyApp.getPriceRangeReplace(arg0, "USD");
-        expect(test).to.equal("");
+        let arg0 = null;
+        let test = eightyApp.getPriceRangeReplace(arg0, 'USD');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
 
         //undefined
         arg0 = undefined;
-        test = eightyApp.getPriceRangeReplace(arg0, "USD");
-        expect(test).to.equal("");
+        test = eightyApp.getPriceRangeReplace(arg0, 'USD');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
 
         //empty string
-        arg0 = "";
-        test = eightyApp.getPriceRangeReplace(arg0, "USD");
-        expect(test).to.equal("");
+        arg0 = '';
+        test = eightyApp.getPriceRangeReplace(arg0, 'USD');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
         done();
     });
-    it("returns empty string when called with false currency", function(done){
-        var validText = "defined";
+
+    it('returns empty object when called with false currency', function(done){
+        let validText = 'defined';
         //null
-        var arg1 = null;
-        var test = eightyApp.getPriceRangeReplace(validText, arg1);
-        expect(test).to.equal("");
+        let arg1 = null;
+        let test = eightyApp.getPriceRangeReplace(validText, arg1);
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
 
         //undefined
         arg1 = undefined;
         test = eightyApp.getPriceRangeReplace(validText, arg1);
-        expect(test).to.equal("");
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
 
         //empty string
-        arg1 = "";
+        arg1 = '';
         test = eightyApp.getPriceRangeReplace(validText, arg1);
-        expect(test).to.equal("");
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
         done();
     });
-    it("returns empty string when called with false text and false currency", function(done){
+
+    it('returns empty object when called with false text and false currency', function(done){
         //null
-        var arg0 = null;
-        var arg1 = null;
-        var test = eightyApp.getPriceRangeReplace(arg0, arg1);
-        expect(test).to.equal("");
+        let arg0 = null;
+        let arg1 = null;
+        let test = eightyApp.getPriceRangeReplace(arg0, arg1);
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
 
         //undefined
         arg0 = undefined;
         arg1 = undefined;
         test = eightyApp.getPriceRangeReplace(arg0, arg1);
-        expect(test).to.equal("");
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
 
         //empty string
-        arg0 = "";
-        arg1 = "";
+        arg0 = '';
+        arg1 = '';
         test = eightyApp.getPriceRangeReplace(arg0, arg1);
-        expect(test).to.equal("");
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({}));
         done();
     });
-    it("does not modify strings with no currency indicators (e.g. \"$\" or \"£\")", function(done){
-        var arg = "do not modify USD 56.00";
-        var test = eightyApp.getPriceRangeReplace(arg, "USD");
-        expect(test).to.equal("do not modify USD 56.00");
 
-        arg = "do not modify GBP 74,00";
-        test = eightyApp.getPriceRangeReplace(arg, "GBP");
-        expect(test).to.equal("do not modify GBP 74,00");
+    it('replaces USD currency ranges correctly', function(done){
+        let arg = '$$$';
+        let test = eightyApp.getPriceRangeReplace(arg, 'USD');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({ priceRangeCurrency: 'USD', priceRangeMin: 40, priceRangeMax: 55 }));
         done();
     });
-    it("returns original string if currency is not recognized", function(done){
-        var arg = "GBP 15.00 £ ££ £££ ££££ original $ $$ $$$ $$$$ USD 15.00";
-        var test = eightyApp.getPriceRangeReplace(arg, "ZZZ");
-        expect(test).to.equal("GBP 15.00 £ ££ £££ ££££ original $ $$ $$$ $$$$ USD 15.00");
+
+    it('replaces GBP currency ranges correctly', function(done){
+        let arg = '£££';
+        let test = eightyApp.getPriceRangeReplace(arg, 'GBP');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({ priceRangeCurrency: 'GBP', priceRangeMin: 25, priceRangeMax: 35 }));
         done();
     });
-    it("replaces USD currency ranges correctly", function(done){
-        var arg = "USD: $ $$ $$$ $$$$";
-        var test = eightyApp.getPriceRangeReplace(arg, "USD");
-        expect(test).to.equal("USD: USD 0.00-25.00 USD 25.00-40.00 USD 50.00-55.00 Above USD 55.00");
+
+    it('replaces YEN currency ranges correctly', function(done){
+        let arg = '¥¥¥';
+        let test = eightyApp.getPriceRangeReplace(arg, 'YEN');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({ priceRangeCurrency: 'YEN', priceRangeMin: 4491, priceRangeMax: 6175 }));
         done();
     });
-    it("replaces GBP currency ranges correctly", function(done){
-        var arg = "GBP: £ ££ £££ ££££";
-        var test = eightyApp.getPriceRangeReplace(arg, "GBP");
-        expect(test).to.equal("GBP: GBP 0.00-15.00 GBP 15.00-25.00 GBP 30.00-35.00 Above GBP 35.00");
+
+    it('replaces EUR currency ranges correctly', function(done){
+        let arg = '€€€';
+        let test = eightyApp.getPriceRangeReplace(arg, 'EUR');
+        expect(JSON.stringify(test)).to.equal(JSON.stringify({ priceRangeCurrency: 'EUR', priceRangeMin: 34, priceRangeMax: 47 }));
         done();
     });
 });//describe: "getPriceRangeReplace"
@@ -648,17 +1001,19 @@ describe("getPriceRangeReplace", function(){
  * Testing: Added coverage for proper function behavior, expanded coverage for invalid input
  * 80app: Changed method to select characters to more be more efficient (secondLastChar and thirdLastChar)
  */
-describe("normalizePrice ", function(){
-    var eightyApp = new EightyAppBase();
-    it("returns 'null' when called with no arguments", function(done){
-        var test = eightyApp.normalizePrice();
+describe('normalizePrice ', function(){
+    let eightyApp = new EightyAppBase();
+
+    it('returns \'null\' when called with no arguments', function(done){
+        let test = eightyApp.normalizePrice();
         expect(test).to.equal(null);
         done();
     });
-    it("returns 'null' when called with invalid arguments", function(done){
+
+    it('returns \'null\' when called with invalid arguments', function(done){
         //null
-        var arg = null;
-        var test = eightyApp.normalizePrice(arg);
+        let arg = null;
+        let test = eightyApp.normalizePrice(arg);
         expect(test).to.equal(null);
 
         //undefined
@@ -667,131 +1022,139 @@ describe("normalizePrice ", function(){
         expect(test).to.equal(null);
 
         //empty string
-        arg = "";
+        arg = '';
         test = eightyApp.normalizePrice(arg);
         expect(test).to.equal(null);
         done();
     });
-    it("normalizes prices with no decimal digits correctly", function(done){
-        var string = "1";
-        var test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("1.00");
 
-        string = "1234";
-        test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("1234.00");
+    it('normalizes prices with no decimal digits correctly', function(done){
+        let string = '1';
+        let test = eightyApp.normalizePrice(string);
+        expect(test).to.equal('1.00');
 
-        string = "123,456,789";
+        string = '1234';
         test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("123456789.00");
+        expect(test).to.equal('1234.00');
+
+        string = '123,456,789';
+        test = eightyApp.normalizePrice(string);
+        expect(test).to.equal('123456789.00');
         done();
     });
-    it("normalizes prices with one digit after decimal place correctly", function(done){
-        var string = "123.4";
-        var test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("123.40");
 
-        string = "123,4";
+    it('normalizes prices with one digit after decimal place correctly', function(done){
+        let string = '123.4';
+        let test = eightyApp.normalizePrice(string);
+        expect(test).to.equal('123.40');
+
+        string = '123,4';
         test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("123.40");
+        expect(test).to.equal('123.40');
         done();
     });
-    it("normalizes prices with two digits after decimal place correctly", function(done){
-        var string = "123.45";
-        var test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("123.45");
 
-        string = "123,45";
+    it('normalizes prices with two digits after decimal place correctly', function(done){
+        let string = '123.45';
+        let test = eightyApp.normalizePrice(string);
+        expect(test).to.equal('123.45');
+
+        string = '123,45';
         test = eightyApp.normalizePrice(string);
-        expect(test).to.equal("123.45");
+        expect(test).to.equal('123.45');
         done();
     });
-    it("normalizes prices with more than two digits after decimal place correctly", function(done){
-        var string = "5.777777777777778";
-        var test = eightyApp.normalizePrice(string)
-        expect(test).to.equal("5.78");
+
+    it('normalizes prices with more than two digits after decimal place correctly', function(done){
+        let string = '5.777777777777778';
+        let test = eightyApp.normalizePrice(string);
+        expect(test).to.equal('5.78');
         done();
     });
 });//describe: "normalizePrice"
 
-describe("removeExtraWhitespace", function(){
-    var eightyApp = new EightyAppBase();
-    it("returns empty string for false input", function(done){
-        var string = undefined;
-        var test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("");
+describe('removeExtraWhitespace', function(){
+    eightyApp = new EightyAppBase();
+
+    it('returns empty string for false input', function(done){
+        let string = undefined;
+        let test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('');
 
         string = null;
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
 
-        string = "";
+        string = '';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
         done();
     });
-    it("removes beginning and end whitespaces", function(done){
+
+    it('removes beginning and end whitespaces', function(done){
         //Trailing space
-        var string = "test ";
-        var test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        let string = 'test ';
+        let test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('test');
 
         //Beginning space
-        string = " test";
+        string = ' test';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
         //Spaces on both ends
-        string = " test ";
+        string = ' test ';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
         //Double spaces on both ends
-        string = "  test  ";
+        string = '  test  ';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
         done();
 
         //Other whitespace on both ends
-        string = "\ttest\r";
+        string = '\ttest\r';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
-        string = "\ntest\v";
+        string = '\ntest\v';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
-        string = "\ftest ";
+        string = '\ftest ';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
         //Removes double whitespace on both ends
-        string = "\t\rtest\n\v";
+        string = '\t\rtest\n\v';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
 
-        string = "\v\ftest\r\t";
+        string = '\v\ftest\r\t';
         test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('test');
     });
-    it("removes multiple whitespace", function(done){
-        var string = "a  b  c  d  e";
-        var test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("a b c d e");
 
-        var string = "a  b\t\tc\r\rd\n\ne\v\vf\f\fg";
-        var test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("a b c d e f g");
+    it('removes multiple whitespace', function(done){
+        let string = 'a  b  c  d  e';
+        let test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('a b c d e');
 
-        var string = "a \tb\t\rc\r\nd\n\ve\v\ff\f g";
-        var test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("a b c d e f g");
+        string = 'a  b\t\tc\r\rd\n\ne\v\vf\f\fg';
+        test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('a b c d e f g');
+
+        string = 'a \tb\t\rc\r\nd\n\ve\v\ff\f g';
+        test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('a b c d e f g');
         done();
     });
-    it("changes all whitespace characters to space", function(done){
-        var string = "a b\tc\rd\ne\vf\fg";
-        var test = eightyApp.removeExtraWhitespace(string);
-        expect(test).to.equal("a b c d e f g");
+
+    it('changes all whitespace characters to space', function(done){
+        let string = 'a b\tc\rd\ne\vf\fg';
+        let test = eightyApp.removeExtraWhitespace(string);
+        expect(test).to.equal('a b c d e f g');
         done();
     });
 });//describe: "removeExtraWhitespace"
@@ -800,947 +1163,1420 @@ describe("removeExtraWhitespace", function(){
  * Testing: Added coverage for invalid input and added coverage for proper function behavior
  * 80app: Added code block to check for invalid input
  */
-describe("removeTag", function(){
-    var eightyApp = new EightyAppBase();
-    //Testing variables
-    var string;
-    var test;
-    it("returns empty string when called with false/no arguments", function(done){
+describe('removeTag', function(){
+    eightyApp = new EightyAppBase();
+    //Testing letiables
+    let string;
+    let test;
+
+    it('returns empty string when called with false/no arguments', function(done){
         test = eightyApp.removeTag();
-        expect(test).to.equal("");
+        expect(test).to.equal('');
 
         //null
         string = null;
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
 
         //undefined
         string = undefined;
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
 
         //empty string
-        string = "";
+        string = '';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
         done();
     });
-    it("does not modify text with no tags", function(done){
-        string = "abcdefghijklmnopqrstuvwxyz";
-        test = eightyApp.removeTag(string);
-        expect(test).to.equal("abcdefghijklmnopqrstuvwxyz");
 
-        string = "the quick brown fox jumped over the lazy dog";
+    it('does not modify text with no tags', function(done){
+        string = 'abcdefghijklmnopqrstuvwxyz';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("the quick brown fox jumped over the lazy dog");
+        expect(test).to.equal('abcdefghijklmnopqrstuvwxyz');
 
-        string = "x = 0. If x<1 do not modify";
+        string = 'the quick brown fox jumped over the lazy dog';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("x = 0. If x<1 do not modify");
+        expect(test).to.equal('the quick brown fox jumped over the lazy dog');
 
-        string = "x = 2. If x>1 do not modify";
+        string = 'x = 0. If x<1 do not modify';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("x = 2. If x>1 do not modify");
+        expect(test).to.equal('x = 0. If x<1 do not modify');
+
+        string = 'x = 2. If x>1 do not modify';
+        test = eightyApp.removeTag(string);
+        expect(test).to.equal('x = 2. If x>1 do not modify');
         done();
     });
-    it("removes tags", function(done){
-        string = "<div></div>";
-        test = eightyApp.removeTag(string);
-        expect(test).to.equal("");
 
-        string = "<img80 src=\"http://imgur.com/gallery/7eGFo3I\">";
+    it('removes tags', function(done){
+        string = '<div></div>';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("");
+        expect(test).to.equal('');
 
-        string = "<h1>test</h1>";
+        string = '<img80 src="http://imgur.com/gallery/7eGFo3I">';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("test");
+        expect(test).to.equal('');
 
-        string = "<h1><strong>bol</strong>d</h1>";
+        string = '<h1>test</h1>';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("bold");
+        expect(test).to.equal('test');
 
-        string = "<div id='first-product' class=\"highlight box\"><a href=\"petfooddirect.com/dog\"><h1><strong>dog</strong> food</h1></a></div>";
+        string = '<h1><strong>bol</strong>d</h1>';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("dog food");
+        expect(test).to.equal('bold');
 
-        string = "<abcdefhijklmnopqrstuvwxyz>testing<zyxwvutsrqponmlkjihfedcba>";
+        string = '<div id=\'first-product\' class="highlight box"><a href="petfooddirect.com/dog"><h1><strong>dog</strong> food</h1></a></div>';
         test = eightyApp.removeTag(string);
-        expect(test).to.equal("testing");
+        expect(test).to.equal('dog food');
+
+        string = '<abcdefhijklmnopqrstuvwxyz>testing<zyxwvutsrqponmlkjihfedcba>';
+        test = eightyApp.removeTag(string);
+        expect(test).to.equal('testing');
         done();
     });
 });//describe: "removeTag"
 
-describe("replaceSpecialCharacters ", function(){
-    var eightyApp = new EightyAppBase();
-    it("replaces special characters with alphanumeric equivalents", function(done){
-        var string = "ÄäÇçĞğİıÖöŞşÜüßàáâãèéêëěìíîïñòóôõřùúûýÿÀÁÂÃÈÉÊËÌÍÎÏÑÒÓÔÕÙÚÛÝ";
-        var test = eightyApp.replaceSpecialCharacters(string);
-        expect(test).to.equal("AaCcGgIiOoSsUussaaaaeeeeeiiiinooooruuuyyAAAAEEEEIIIINOOOOUUUY");
-        done();
-    });
-    it("returns original string if it contains no special characters", function(done){
-        var string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var test = eightyApp.replaceSpecialCharacters(string);
-        expect(test).to.equal("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-        done();
-    });
-    it("preserves non-special characters when special characters are present", function(done){
-        var string = "AÄäa CÇçc GĞğg Iİıi OÖöo SŞşs UÜüu ssßss aàaáaâaãa eèeéeêeëeěe iìiíiîiïi" + 
-                     " nñn oòoóoôoõ rřr uùuúuûu yýyÿy AÀAÁAÂAÃA EÈEÉEÊEËE aÌbÍcÎdÏe qÑv -Ò;Ó:Ô'Õ\" $Ù@Ú!Û% YÝY";
-        var test = eightyApp.replaceSpecialCharacters(string);
+describe('replaceSpecialCharacters ', function(){
+    eightyApp = new EightyAppBase();
 
-        var expectedResult = "AAaa CCcc GGgg IIii OOoo SSss UUuu ssssss aaaaaaaaa eeeeeeeeeee iiiiiiiii" + 
-                             " nnn oooooooo rrr uuuuuuu yyyyy AAAAAAAAA EEEEEEEEE aIbIcIdIe qNv -O;O:O'O\" $U@U!U% YYY";
+    it('replaces special characters with alphanumeric equivalents', function(done){
+        let string = 'ÄäÇçĞğİıÖöŞşÜüßàáâãèéêëěìíîïñòóôõœřùúûýÿžÀÁÂÃÈÉÊËÌÍÎÏÑÒÓÔÕÙÚÛÝŽ';
+        let test = eightyApp.replaceSpecialCharacters(string);
+        expect(test).to.equal('AaCcGgIiOoSsUussaaaaeeeeeiiiinoooooeruuuyyzAAAAEEEEIIIINOOOOUUUYZ');
+        done();
+    });
+
+    it('returns original string if it contains no special characters', function(done){
+        let string = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let test = eightyApp.replaceSpecialCharacters(string);
+        expect(test).to.equal('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+        done();
+    });
+
+    it('preserves non-special characters when special characters are present', function(done){
+        let string = 'AÄäa CÇçc GĞğg Iİıi OÖöo SŞşs UÜüu ssßss aàaáaâaãa eèeéeêeëeěe iìiíiîiïi' +
+                     ' nñn oòoóoôoõ rřr uùuúuûu yýyÿy AÀAÁAÂAÃA EÈEÉEÊEËE aÌbÍcÎdÏe qÑv -Ò;Ó:Ô\'Õ" $Ù@Ú!Û% YÝY';
+        let test = eightyApp.replaceSpecialCharacters(string);
+
+        let expectedResult = 'AAaa CCcc GGgg IIii OOoo SSss UUuu ssssss aaaaaaaaa eeeeeeeeeee iiiiiiiii' +
+                             ' nnn oooooooo rrr uuuuuuu yyyyy AAAAAAAAA EEEEEEEEE aIbIcIdIe qNv -O;O:O\'O" $U@U!U% YYY';
         expect(test).to.equal(expectedResult);
         done();
     });
-    it("preserves spacing", function(done){
-        var string = "a  Ä\t\tc\n\nÇ\r\r\r\ri\r\vİ\fo \t\n\r\v\fÖ";
-        var test = eightyApp.replaceSpecialCharacters(string);
-        expect(test).to.equal("a  A\t\tc\n\nC\r\r\r\ri\r\vI\fo \t\n\r\v\fO");
+
+    it('preserves spacing', function(done){
+        let string = 'a  Ä\t\tc\n\nÇ\r\r\r\ri\r\vİ\fo \t\n\r\v\fÖ';
+        let test = eightyApp.replaceSpecialCharacters(string);
+        expect(test).to.equal('a  A\t\tc\n\nC\r\r\r\ri\r\vI\fo \t\n\r\v\fO');
         done();
     });
 });//describe: "replaceSpecialCharacters"
 
 describe('trimAll', function() {
-	var eightyApp = new EightyAppBase();
-	it("does not modify strings which should not be modified", function(done) {
-		var array_normal = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-		var array = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-        var test = arraysEqual(array_normal, eightyApp.trimAll(array));
+    eightyApp = new EightyAppBase();
+
+    it('does not modify strings which should not be modified', function(done) {
+        let array_normal = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let array = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
-		done();
-	});
-	it("handles one item with whitespae at start", function(done) {
-		var array_normal = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-		var array = [" por ti", "mi", "orgullo", "ahogo", "en una botella"];
-        var test = arraysEqual(array_normal, eightyApp.trimAll(array));
+        done();
+    });
+
+    it('handles one item with whitespae at start', function(done) {
+        let array_normal = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let array = [' por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
-		done();
-	});
-	it("handles two items with whitespae at start", function(done) {
-		var array_normal = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-		var array = [" por ti", "mi", " orgullo", "ahogo", "en una botella"];
-        var test = arraysEqual(array_normal, eightyApp.trimAll(array));
+        done();
+    });
+
+    it('handles two items with whitespae at start', function(done) {
+        let array_normal = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let array = [' por ti', 'mi', ' orgullo', 'ahogo', 'en una botella'];
+        let test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
-		done();
-	});
-	it("handles one item with whitespae at end", function(done) {
-		var array_normal = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-		var array = ["por ti ", "mi", "orgullo", "ahogo", "en una botella"];
-        var test = arraysEqual(array_normal, eightyApp.trimAll(array));
+        done();
+    });
+
+    it('handles one item with whitespae at end', function(done) {
+        let array_normal = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let array = ['por ti ', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
-		done();
-	});
-	it("handles two items with whitespae at end", function(done) {
-		var array_normal = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-		var array = ["por ti ", "mi", "orgullo", "ahogo", "en una botella "];
-        var test = arraysEqual(array_normal, eightyApp.trimAll(array));
+        done();
+    });
+
+    it('handles two items with whitespae at end', function(done) {
+        let array_normal = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let array = ['por ti ', 'mi', 'orgullo', 'ahogo', 'en una botella '];
+        let test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
-		done();
-	});
-	it("handles one item with whitespace at end and another with it at start", function(done) {
-		var array_normal = ["por ti", "mi", "orgullo", "ahogo", "en una botella"];
-		var array = ["por ti ", "mi", " orgullo", "ahogo", "en una botella"];
-        var test = arraysEqual(array_normal, eightyApp.trimAll(array));
+        done();
+    });
+
+    it('handles one item with whitespace at end and another with it at start', function(done) {
+        let array_normal = ['por ti', 'mi', 'orgullo', 'ahogo', 'en una botella'];
+        let array = ['por ti ', 'mi', ' orgullo', 'ahogo', 'en una botella'];
+        let test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
 
-		array = ["por ti ", " mi", " orgullo", "ahogo ", "en una botella"];
-		test = eightyApp.trimAll(array);
+        array = ['por ti ', ' mi', ' orgullo', 'ahogo ', 'en una botella'];
+        test = eightyApp.trimAll(array);
         test = arraysEqual(array_normal, eightyApp.trimAll(array));
         expect(test).to.equal(true);
-		done();
-	});
-	it ('handles empty array', function(done) {
-		var array = [];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles array with an integer', function(done) {
-		var array = ["test", 1];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles array with an float', function(done) {
-		var array = ["test", 1.5];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles array with a boolean', function(done) {
-		var array = ["test", false];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles array with a null', function(done) {
-		var array = ["test", null];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles array with a undefined', function(done) {
-		var array = ["test", undefined];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles nested array', function(done) {
-		var array = ["test", ["dog"]];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles array with object', function(done) {
-		var array = ["test", {"dog": "rat"}];
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles plain stirng', function(done) {
-		var array = "Me interesas";
-		var test = eightyApp.trimAll(array);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles no parameters', function(done) {
-		var test = eightyApp.trimAll();
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles undefined', function(done) {
-		var test = eightyApp.trimAll(undefined);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles an array with mixed types', function(done) {
-		var test = eightyApp.trimAll([undefined, null, 1, "hello", "   migas", "tit  "]);
-		expect(test).to.equal(null);
-		done();
-	});
-	it ('handles null', function(done) {
-		var test = eightyApp.trimAll(null);
-		expect(test).to.equal(null);
-		done();
-	});
+        done();
+    });
+
+    it ('handles empty array', function(done) {
+        let array = [];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles array with an integer', function(done) {
+        let array = ['test', 1];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles array with an float', function(done) {
+        let array = ['test', 1.5];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles array with a boolean', function(done) {
+        let array = ['test', false];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles array with a null', function(done) {
+        let array = ['test', null];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles array with a undefined', function(done) {
+        let array = ['test', undefined];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles nested array', function(done) {
+        let array = ['test', ['dog']];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles array with object', function(done) {
+        let array = ['test', { 'dog': 'rat' }];
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles plain stirng', function(done) {
+        let array = 'Me interesas';
+        let test = eightyApp.trimAll(array);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles no parameters', function(done) {
+        let test = eightyApp.trimAll();
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles undefined', function(done) {
+        let test = eightyApp.trimAll(undefined);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles an array with mixed types', function(done) {
+        let test = eightyApp.trimAll([undefined, null, 1, 'hello', '   migas', 'tit  ']);
+        expect(test).to.equal(null);
+        done();
+    });
+
+    it ('handles null', function(done) {
+        let test = eightyApp.trimAll(null);
+        expect(test).to.equal(null);
+        done();
+    });
 });
-describe("stateCodeConverter", function() { 
-	eightyApp = new EightyAppBase();
-	it("handles a true value", function(done) {
-		var test = eightyApp.stateCodeConverter["Texas"];
-		expect(test).to.equal("TX");
-		done();
-	});
-	it("handles a false value", function(done) {
-		var test = eightyApp.stateCodeConverter["tegucigalpa"];
-		expect(test).to.equal(undefined);
-		done();
-	});
+describe('stateCodeConverter', function() {
+    eightyApp = new EightyAppBase();
+
+    it('handles a true value', function(done) {
+        let test = eightyApp.stateCodeConverter['Texas'];
+        expect(test).to.equal('TX');
+        done();
+    });
+
+    it('handles a false value', function(done) {
+        let test = eightyApp.stateCodeConverter['tegucigalpa'];
+        expect(test).to.equal(undefined);
+        done();
+    });
 });
 
-describe("countryCodeConverter", function() { 
-	eightyApp = new EightyAppBase();
-	it("handles a true value", function(done) {
-		var test = eightyApp.countryCodeConverter["Greenland"];
-		expect(test).to.equal("GL");
-		done();
-	});
-	it("handles a false value", function(done) {
-		var test = eightyApp.stateCodeConverter["tegucigalpa"];
-		expect(test).to.equal(undefined);
-		done();
-	});
+describe('countryCodeConverter', function() {
+    eightyApp = new EightyAppBase();
+
+    it('handles a true value', function(done) {
+        let test = eightyApp.countryCodeConverter['Greenland'];
+        expect(test).to.equal('GL');
+        done();
+    });
+
+    it('handles a false value', function(done) {
+        let test = eightyApp.stateCodeConverter['tegucigalpa'];
+        expect(test).to.equal(undefined);
+        done();
+    });
 });
-describe("encodeSpanish", function() { 
-	eightyApp = new EightyAppBase();
-	it("encodes spanish properly", function(done) {
-	    var spanishString = "á, é, í, ó,ú,ñ,ü, Á, É, Í, Ó, Ú, Ñ, Ü";
-	    var encodedSpanishString = "%C3%A1, %C3%A9, %C3%AD, %C3%B3,%C3%BA,%C3%B1,%C3%BC, %C3%81, %C3%89, %C3%8D, %C3%93, %C3%9A, %C3%91, %C3%9C";
-		var test = eightyApp.encodeSpanish(spanishString);
-		expect(test).to.equal(encodedSpanishString);
-		done();
-	});
+
+describe('encodeSpanish', function() {
+    eightyApp = new EightyAppBase();
+
+    it('encodes spanish properly', function(done) {
+        let spanishString = 'á, é, í, ó,ú,ñ,ü, Á, É, Í, Ó, Ú, Ñ, Ü';
+        let encodedSpanishString = '%C3%A1, %C3%A9, %C3%AD, %C3%B3,%C3%BA,%C3%B1,%C3%BC, %C3%81, %C3%89, %C3%8D, %C3%93, %C3%9A, %C3%91, %C3%9C';
+        let test = eightyApp.encodeSpanish(spanishString);
+        expect(test).to.equal(encodedSpanishString);
+        done();
+    });
 });
 
 /* UPDATES: 07-14-2016
  * Testing: Added function to check if a paymentType is valid
  * 80app: Added code block to check for invalid input
  */
-describe("processPaymentTypes", function(){
+describe('processPaymentTypes', function(){
     eightyApp = new EightyAppBase();
+
     it('valid payment type', function(done){
-        var needle = 'Master Card';
-        var test = eightyApp.processPaymentTypes(needle);
+        let needle = 'Master Card';
+        let test = eightyApp.processPaymentTypes(needle);
         expect(test).to.equal(true);
         done();
-    })
+    });
+
     it('invalid payment type', function(done){
-        var needle = 'Other'
-        var test = eightyApp.processPaymentTypes(needle);
+        let needle = 'Other';
+        let test = eightyApp.processPaymentTypes(needle);
         expect(test).to.equal(false);
         done();
-    })
-})
+    });
+});
 
 /* UPDATES: 07-14-2016
  * Testing: Added function to check if a day/day-range is valid
  * 80app: Added code block to check input and make it valid
  */
-describe("processDay", function(){
+describe('processDay', function(){
     eightyApp = new EightyAppBase();
+
     it('is valid day', function(done){
-        var needle = 'Mon';
-        var test = eightyApp.processDay(needle)
+        let needle = 'Mon';
+        let test = eightyApp.processDay(needle);
         expect(test).to.equal('Monday');
         done();
-    })
+    });
+
     it('is invalid day', function(done){
-        var needle = 'Other'
-        var test = eightyApp.processDay(needle);
+        let needle = 'Other';
+        let test = eightyApp.processDay(needle);
         expect(test).to.equal(needle);
         done();
-    })
+    });
+
     it('is valid day range', function(done){
-        var needle = 'Mon - Thu'
-        var test = eightyApp.processDay(needle)
-        expect(test).to.equal('Monday - Thursday')
+        let needle = 'Mon - Thu';
+        let test = eightyApp.processDay(needle);
+        expect(test).to.equal('Monday - Thursday');
         done();
-    })
-})
+    });
+});
 
 
 /* UPDATES: 07-14-2016
  * Testing: Added function to check if a day/day-range is valid
  * 80app: Added code block to check input and make it valid
  */
-describe("processHour", function(){
+describe('processHour', function(){
     eightyApp = new EightyAppBase();
+
     it('is valid hour', function(done){
-        var needle = '8:00 am - 9:00 pm'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal(needle)
-        done()
-    })
+        let needle = '8:00 am - 9:00 pm';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal(needle);
+        done();
+    });
+
     it('am/pm with no space', function(done){
-        var needle = '8:00am - 9:00pm'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal('8:00 am - 9:00 pm')
-        done()
-    })
+        let needle = '8:00am - 9:00pm';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal('8:00 am - 9:00 pm');
+        done();
+    });
+
     it('am/pm with no space/ no minutes', function(done){
-        var needle = '8am - 9pm'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal('8:00 am - 9:00 pm')
-        done()
-    })
+        let needle = '8am - 9pm';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal('8:00 am - 9:00 pm');
+        done();
+    });
+
     it('hour with leading 0', function(done){
-        var needle = '08:00am - 09:00pm'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal('08:00 am - 09:00 pm')
-        done()
-    })
+        let needle = '08:00am - 09:00pm';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal('08:00 am - 09:00 pm');
+        done();
+    });
+
     it('hour without minutes', function(done){
-        var needle = '8 am - 9 pm'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal('8:00 am - 9:00 pm')
-        done()
-    })
+        let needle = '8 am - 9 pm';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal('8:00 am - 9:00 pm');
+        done();
+    });
+
     it('24 hours', function(done){
-        var needle = '24 hours'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal('12:00 am - 11:59 pm')
-        done()
-    })
+        let needle = '24 hours';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal('12:00 am - 11:59 pm');
+        done();
+    });
+
     it('Invalid hours/range', function(done){
-        var needle = '44:00 am - 19:00'
-        var test = eightyApp.processHour(needle)
-        expect(test).to.equal('manual check required')
-        done()
-    })
-})
+        let needle = '44:00 am - 19:00';
+        let test = eightyApp.processHour(needle);
+        expect(test).to.equal('manual check required');
+        done();
+    });
+});
 
 /* UPDATES: 10-25-2016
  * Testing: Added function to remove 80flag from URL
  * 80app: Added code block to check input and make it valid
  */
-describe("strip80flagFromURL", function(){
+describe('strip80flagFromURL', function(){
     eightyApp = new EightyAppBase();
+
     it('No 80flag', function(done){
-        var needle = 'http://www.80legs.com';
-        var test = eightyApp.strip80flagFromURL(needle)
+        let needle = 'http://www.80legs.com';
+        let test = eightyApp.strip80flagFromURL(needle);
         expect(test).to.equal('http://www.80legs.com');
         done();
-    })
+    });
+
     it('Basic 80flag', function(done){
-        var needle = 'http://www.80legs.com?80flag=test';
-        var test = eightyApp.strip80flagFromURL(needle)
+        let needle = 'http://www.80legs.com?80flag=test';
+        let test = eightyApp.strip80flagFromURL(needle);
         expect(test).to.equal('http://www.80legs.com');
         done();
-    })
+    });
+
     it('Basic 80flag with slash', function(done){
-        var needle = 'http://www.80legs.com/?80flag=test';
-        var test = eightyApp.strip80flagFromURL(needle)
+        let needle = 'http://www.80legs.com/?80flag=test';
+        let test = eightyApp.strip80flagFromURL(needle);
         expect(test).to.equal('http://www.80legs.com/');
         done();
-    })
+    });
+
     it('Other parameter before 80flag', function(done){
-        var needle = 'http://www.80legs.com?param=blah&80flag=test';
-        var test = eightyApp.strip80flagFromURL(needle)
+        let needle = 'http://www.80legs.com?param=blah&80flag=test';
+        let test = eightyApp.strip80flagFromURL(needle);
         expect(test).to.equal('http://www.80legs.com?param=blah');
         done();
-    })
+    });
+
     it('Other parameter after 80flag', function(done){
-        var needle = 'http://www.80legs.com?80flag=test&param=blah';
-        var test = eightyApp.strip80flagFromURL(needle)
+        let needle = 'http://www.80legs.com?80flag=test&param=blah';
+        let test = eightyApp.strip80flagFromURL(needle);
         expect(test).to.equal('http://www.80legs.com?param=blah');
         done();
-    })
+    });
+
     it('80flag has JSON string', function(done){
-        var needle = "http://www.80legs.com?80flag={'test':'hello','blah':'yay'}";
-        var test = eightyApp.strip80flagFromURL(needle)
+        let needle = 'http://www.80legs.com?80flag={\'test\':\'hello\',\'blah\':\'yay\'}';
+        let test = eightyApp.strip80flagFromURL(needle);
         expect(test).to.equal('http://www.80legs.com');
         done();
-    })
-})
+    });
+});
 
 /* UPDATES: 10-25-2016
  * Testing: Added function to map legacy DF data types to new ones
  * 80app: Added code block to check input and make it valid
  */
-describe("finalizeDataType", function(){
+describe('finalizeDataType', function(){
     eightyApp = new EightyAppBase();
+
     it('product', function(done){
-        var needle = 'product';
-        var test = eightyApp.finalizeDataType(needle)
+        let needle = 'product';
+        let test = eightyApp.finalizeDataType(needle);
         expect(test).to.equal('product');
         done();
-    })
+    });
+
     it('products', function(done){
-        var needle = 'products';
-        var test = eightyApp.finalizeDataType(needle)
+        let needle = 'products';
+        let test = eightyApp.finalizeDataType(needle);
         expect(test).to.equal('product');
         done();
-    })
+    });
+
     it('location', function(done){
-        var needle = 'location';
-        var test = eightyApp.finalizeDataType(needle)
+        let needle = 'location';
+        let test = eightyApp.finalizeDataType(needle);
         expect(test).to.equal('business');
         done();
-    })
+    });
+
     it('business', function(done){
-        var needle = 'business';
-        var test = eightyApp.finalizeDataType(needle)
+        let needle = 'business';
+        let test = eightyApp.finalizeDataType(needle);
         expect(test).to.equal('business');
         done();
-    })
+    });
+
     it('Invalid data type', function(done){
-        var needle = 'blah';
-        var test = eightyApp.finalizeDataType(needle)
+        let needle = 'blah';
+        let test = eightyApp.finalizeDataType(needle);
         expect(test).to.equal(null);
         done();
-    })
-})
+    });
+});
 
 /* UPDATES: 10-25-2016
  * Testing: Added function to convert legacy Datafiniti string values into objects with source URL attributes
  * 80app: Added code block to check input and make it valid
  */
-describe("convertStringToObjectWithSourceURL", function(){
+describe('convertElementToObjectWithSourceURL', function(){
     eightyApp = new EightyAppBase();
+
     it('Description String', function(done){
-        var needleKey = 'description';
-	var needleValue = 'This is a description.';
-	var needleURL = 'http://www.80legs.com';
-        var test = eightyApp.convertStringToObjectWithSourceURL(needleKey, needleValue, needleURL)
-	var expectedObject = {description:'This is a description.',sourceURL:'http://www.80legs.com'}
+        let needleKey = 'description';
+        let needleValue = 'This is a description.';
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.convertElementToObjectWithSourceURL(needleKey, needleValue, needleURL);
+        let expectedObject = { description:'This is a description.',sourceURLs:['http://www.80legs.com'] };
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
-})
+    });
+});
 
 /* UPDATES: 10-25-2016
  * Testing: Added function to add a sourceURL to an object
  * 80app: Added code block to check input and make it valid
  */
-describe("addSourceURLToObject", function(){
+describe('addSourceURLToObject', function(){
     eightyApp = new EightyAppBase();
+
     it('SKU Object', function(done){
-        var needleObject = {sku:'12345'};
-        var needleURL = 'http://www.80legs.com';
-        var test = eightyApp.addSourceURLToObject(needleObject, needleURL)
-        var expectedObject = {sku:'12345',sourceURL:'http://www.80legs.com'}
+        let needleObject = { sku:'12345' };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.addSourceURLToObject(needleObject, needleURL);
+        let expectedObject = { sku:'12345',sourceURLs:['http://www.80legs.com'] };
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
-})
+    });
+});
 
 /* UPDATES: 10-25-2016
  * Testing: Added function to convert string values to list of objects with source URLs
  * 80app: Added code block to check input and make it valid
  */
-describe("finalizeFieldAsListOfObjects", function(){
+describe('finalizeFieldAsListOfObjects', function(){
     eightyApp = new EightyAppBase();
+
     it('String', function(done){
-        var needleOldFieldName = 'description';
-        var needleOldFieldValue = 'This is a description.';
-        var needleURL = 'http://www.80legs.com';
-        var test = eightyApp.finalizeFieldAsListOfObjects(needleOldFieldName, needleOldFieldValue, needleURL)
-        var expectedObject = [{description:'This is a description.',sourceURL:'http://www.80legs.com'}]
+        let needleOldFieldName = 'description';
+        let needleOldFieldValue = 'This is a description.';
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeFieldAsListOfObjects(needleOldFieldName, needleOldFieldValue, needleURL);
+        let expectedObject = [{ description:'This is a description.',sourceURLs:['http://www.80legs.com'] }];
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
+    });
+
     it('Array of objects', function(done){
-        var needleOldFieldName = 'description';
-        var needleOldFieldValue = [{description:'This is a description.'},{description:'This is a second description.'}]
-        var needleURL = 'http://www.80legs.com';
-        var test = eightyApp.finalizeFieldAsListOfObjects(needleOldFieldName, needleOldFieldValue, needleURL)
-        var expectedObject = [{description:'This is a description.',sourceURL:'http://www.80legs.com'},{description:'This is a second description.',sourceURL:'http://www.80legs.com'}]
+        let needleOldFieldName = 'description';
+        let needleOldFieldValue = [{ description:'This is a description.' },{ description:'This is a second description.' }];
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeFieldAsListOfObjects(needleOldFieldName, needleOldFieldValue, needleURL);
+        let expectedObject = [{ description:'This is a description.',sourceURLs:['http://www.80legs.com'] },{ description:'This is a second description.',sourceURLs:['http://www.80legs.com'] }];
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
+    });
+
     it('Single Object', function(done){
-        var needleOldFieldName = 'description';
-        var needleOldFieldValue = {description: 'This is a description.'}
-        var needleURL = 'http://www.80legs.com';
-        var test = eightyApp.finalizeFieldAsListOfObjects(needleOldFieldName, needleOldFieldValue, needleURL)
-        var expectedObject = [{description:'This is a description.',sourceURL:'http://www.80legs.com'}]
+        let needleOldFieldName = 'description';
+        let needleOldFieldValue = { description: 'This is a description.' };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeFieldAsListOfObjects(needleOldFieldName, needleOldFieldValue, needleURL);
+        let expectedObject = [{ description:'This is a description.',sourceURLs:['http://www.80legs.com'] }];
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
-})
+    });
+});
 
 /* UPDATES: 10-25-2016
  * Testing: Added function to finalize a record so it can be imported into Datafiniti.  Handles a lot of legacy mapping.
  * 80app: Added code block to check input and make it valid
  */
-describe("finalizeRecord", function(){
+describe('finalizeRecord', function(){
     eightyApp = new EightyAppBase();
+
+    it('empty result', function(done) {
+        let needleResult = {};
+        let needleURL = 'http://www.80leges.com';
+        let test = eightyApp.finalizeRecord(needleResult,needleURL);
+        let expectedObject = {};
+
+        expect(test).to.deep.equal(expectedObject);
+        done();
+    });
+
     it('array of records', function(done){
-      var needleResult = [
-	{
-		"dataType": "product",
-		"brand": "Bradford White",
-		"name": "Ef Series Ultra High Efficiency Models",
-		"manufacturerNumber": "EF-60T-125E-3N"
-	},
-	{
-		"dataType": "product",
-		"brand": "Bradford White",
-		"name": "Ef Series Ultra High Efficiency Models",
-		"manufacturerNumber": "EF-60T-150E-3N"
-	},
-	{
-		"dataType": "product",
-		"brand": "Bradford White",
-		"name": "Ef Series Ultra High Efficiency Models",
-		"manufacturerNumber": "EF-60T-199E-3N"
-	}
-]
+        let needleResult = [
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+                'manufacturerNumber': 'EF-60T-125E-3N'
+            },
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+                'manufacturerNumber': 'EF-60T-150E-3N'
+            },
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+                'manufacturerNumber': 'EF-60T-199E-3N'
+            }
+        ];
 
-        var needleURL = 'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/';
-        var test = eightyApp.finalizeRecord(needleResult, needleURL);
+        let needleURL = 'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
 
-        var expectedObject = [
-        {
-                "dataType": "product",
-                "brand": "Bradford White",
-                "name": "Ef Series Ultra High Efficiency Models",
-                "manufacturerNumber": "EF-60T-125E-3N",
-		"sourceURLs": [
-			"http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/"
-		]
-        },
-        {
-                "dataType": "product",
-                "brand": "Bradford White",
-                "name": "Ef Series Ultra High Efficiency Models",
-                "manufacturerNumber": "EF-60T-150E-3N",
-                "sourceURLs": [
-                        "http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/"
+        let expectedObject = [
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+                'manufacturerNumber': 'EF-60T-125E-3N',
+                'sourceURLs': [
+                    'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
                 ]
-        },
-        {
-                "dataType": "product",
-                "brand": "Bradford White",
-                "name": "Ef Series Ultra High Efficiency Models",
-                "manufacturerNumber": "EF-60T-199E-3N",
-                "sourceURLs": [
-                        "http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/"
+            },
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+                'manufacturerNumber': 'EF-60T-150E-3N',
+                'sourceURLs': [
+                    'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
                 ]
-        }
-]
+            },
+            {
+                'dataType': 'product',
+                'brand': 'Bradford White',
+                'name': 'Ef Series Ultra High Efficiency Models',
+                'manufacturerNumber': 'EF-60T-199E-3N',
+                'sourceURLs': [
+                    'http://www.bradfordwhite.com/sites/default/files/manuals-spec-sheets/commercial/gas-natural/'
+                ]
+            }
+        ];
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
+    });
 
     it('tripadvisor', function(done){
-      var needleResult = {
-	"dataType": "business",
-	"name": "Auberge Buena Vista",
-	"address": "5.7 Avenue Kwame n'Krhuma, 09 BP 1247 Ouaga 09",
-	"city": "Ouagadougou",
-	"postalCode": "01",
-	"country": "Burkina Faso",
-	"province": "Ouagadougou",
-	"descriptions": "Auberge Buena Vista, Ouagadougou: See reviews, articles, and 2 photos of Auberge Buena Vista, ranked No.12 on TripAdvisor among 12 attractions in Ouagadougou.",
-	"lat": "12.36213",
-	"long": "-1.517894",
-	"email": "contact@auberge-buenavistaouaga.com",
-	"images": [
-		"https://media-cdn.tripadvisor.com/media/photo-t/03/be/c0/2a/auberge-buena-vista.jpg"
-	],
-	"phones": [
-		"0022670027554"
-	]
-}
-        var needleURL = 'http://tripadvisor.com/Attraction_Review-g293769-d1806977-Reviews-Auberge_Buena_Vista-Ouagadougou_Centre_Region.html';
-        var test = eightyApp.finalizeRecord(needleResult, needleURL);
-
-        var expectedObject = {
-        "dataType": "business",
-        "name": "Auberge Buena Vista",
-        "address": "5.7 Avenue Kwame n'Krhuma, 09 BP 1247 Ouaga 09",
-        "city": "Ouagadougou",
-        "postalCode": "01",
-        "country": "Burkina Faso",
-        "province": "Ouagadougou",
-        "descriptions": [
+        let needleResult = {
+            'dataType': 'business',
+            'name': 'Auberge Buena Vista',
+            'address': '5.7 Avenue Kwame n\'Krhuma, 09 BP 1247 Ouaga 09',
+            'city': 'Ouagadougou',
+            'postalCode': '01',
+            'country': 'Burkina Faso',
+            'province': 'Ouagadougou',
+            'descriptions': 'Auberge Buena Vista, Ouagadougou: See reviews, articles, and 2 photos of Auberge Buena Vista, ranked No.12 on TripAdvisor among 12 attractions in Ouagadougou.',
+            'lat': '12.36213',
+            'long': '-1.517894',
+            'email': 'contact@auberge-buenavistaouaga.com',
+            'images': [
+                'https://media-cdn.tripadvisor.com/media/photo-t/03/be/c0/2a/auberge-buena-vista.jpg'
+            ],
+            'phones': [
+                '0022670027554'
+            ],
+            'rooms': [
                 {
-                        "description": "Auberge Buena Vista, Ouagadougou: See reviews, articles, and 2 photos of Auberge Buena Vista, ranked No.12 on TripAdvisor among 12 attractions in Ouagadougou.",
-                        "sourceURL": "http://tripadvisor.com/Attraction_Review-g293769-d1806977-Reviews-Auberge_Buena_Vista-Ouagadougou_Centre_Region.html"
+                    'roomType': 'Double Room',
+                    'amountMax': 124,
+                    'amountMin': 124,
+                    'capacity': 1,
+                    'currency': 'USD',
+                    'dateSeen': '2017-08-07T23:26:50Z'
+                },
+                {
+                    'roomType':'Single Room',
+                    'amountMax': 124,
+                    'amountMin': 124,
+                    'capacity': 1,
+                    'currency': 'USD',
+                    'dateSeen': '2017-08-07T23:26:50Z'
                 }
-        ],
-        "lat": "12.36213",
-        "long": "-1.517894",
-        "email": "contact@auberge-buenavistaouaga.com",
-        "images": [
-                "https://media-cdn.tripadvisor.com/media/photo-t/03/be/c0/2a/auberge-buena-vista.jpg"
-        ],
-        "phones": [
-                "0022670027554"
-        ],
-	"sourceURLs": [
-		"http://tripadvisor.com/Attraction_Review-g293769-d1806977-Reviews-Auberge_Buena_Vista-Ouagadougou_Centre_Region.html"
-	]
-}
+            ]
+        };
+        let needleURL = 'http://tripadvisor.com/Attraction_Review-g293769-d1806977-Reviews-Auberge_Buena_Vista-Ouagadougou_Centre_Region.html';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let currentDate = eightyApp.getNearestDateMinute();
+        let expectedObject = {
+            'dataType': 'business',
+            'name': 'Auberge Buena Vista',
+            'address': '5.7 Avenue Kwame n\'Krhuma, 09 BP 1247 Ouaga 09',
+            'city': 'Ouagadougou',
+            'postalCode': '01',
+            'country': 'Burkina Faso',
+            'province': 'Ouagadougou',
+            'descriptions': [
+                {
+                    'sourceURLs': ['http://tripadvisor.com/Attraction_Review-g293769-d1806977-Reviews-Auberge_Buena_Vista-Ouagadougou_Centre_Region.html'],
+                    'value': 'Auberge Buena Vista, Ouagadougou: See reviews, articles, and 2 photos of Auberge Buena Vista, ranked No.12 on TripAdvisor among 12 attractions in Ouagadougou.',
+                    'dateSeen': [currentDate]
+                }
+            ],
+            'lat': '12.36213',
+            'long': '-1.517894',
+            'email': 'contact@auberge-buenavistaouaga.com',
+            'images': [
+                'https://media-cdn.tripadvisor.com/media/photo-t/03/be/c0/2a/auberge-buena-vista.jpg'
+            ],
+            'phones': [
+                '0022670027554'
+            ],
+            'rooms':[
+                {
+                    'roomType': 'Double Room',
+                    'amountMax': 124,
+                    'amountMin': 124,
+                    'capacity': 1,
+                    'currency': 'USD',
+                    'dateSeen': [currentDate]
+                },
+                {
+                    'roomType':'Single Room',
+                    'amountMax': 124,
+                    'amountMin': 124,
+                    'capacity': 1,
+                    'currency': 'USD',
+                    'dateSeen': [currentDate]
+                }
+            ],
+            'sourceURLs': [
+                'http://tripadvisor.com/Attraction_Review-g293769-d1806977-Reviews-Auberge_Buena_Vista-Ouagadougou_Centre_Region.html'
+            ]
+        };
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
-    it('streeteasy', function(done){
-      var needleResult = {
-	"dataType": "property",
-	"name": "453 Fdr Drive C1601-1602",
-	"address": "453 Fdr Drive C1601-1602",
-	"size": "1600 sq. ft.",
-	"numBedroom": "3",
-	"numBathroom": "2",
-	"prices": [
-		{
-			"dateSeen": "2016-10-26T20:42:04.654Z",
-			"date": "2016-07-11T00:00:00.000Z",
-			"offer": "Listed by Corcoran",
-			"price": "USD 1600000",
-			"pricePerSquareFoot": "USD 1000"
-		},
-		{
-			"dateSeen": "2016-10-26T20:42:04.654Z",
-			"date": "2016-08-16T00:00:00.000Z",
-			"offer": "Listing entered contract",
-			"price": "USD 1600000",
-			"pricePerSquareFoot": "USD 1000"
-		}
-	],
-	"city": "New York",
-	"postalCode": "10002",
-	"description": "Two adjacent apartments just combined and completely renovated to create an incredible 1600 sq. ft. three bedroom two bathroom home with breathtaking views of the East River, Corlears Hook Park, three bridges and the Financial District. This high floor apartment has three exposures (E/S/W) offering sunrise to sunset views and low monthly maintenance. Enter the welcoming foyer with two walk-in closets, custom lighting and an alcove office space. The main living space features an open kitchen with an extensive custom island with ample seating for eating, in addition to a separate dining area and large living room. The kitchen features brand new stainless steel appliances including a double door refrigerator with filtered water/ice maker, pull out under mount drawer microwave, dishwasher, gas range, under counter lighting, custom Shaker-style cabinetry and goose neck kitchen faucet. The living space contains both a corner picture window and full size kitchen window. At the far end of the main gallery you will find two corner bedrooms with full river views and walk in closets, as well as a subway tiled bathroom with soaking tub and two linen closets. An immense private master suite has been created with corner windows overlooking East River Park seating area oversize walk-in closet with window and en suite enlarged ceramic tiled master bathroom with glass enclosed shower stall with handheld and rain shower fixtures. Much attention to detail has been paid, including soffit and overhead lighting and sconces. Entirely new electrical throughout including fully wired for cable/internet. And there is much flexibility in how the space can best suit the needs of the new owner. East River Housing is located in a park-like setting in close proximity to East River Park and restaurants, galleries and boutiques on the Lower East Side. Resident fitness room, central laundry and 24-hour security and attended lobby. M14, M21 and M22 buses outside your door and F, J, M, Z, B, D trains at a short distance. Sorry no pets",
-	"parking": "Parking Available",
-	"country": "US",
-	"province": "NY",
-	"lat": "40.7129",
-	"long": "-73.9789",
-	"images": [
-		"http://cdn-img0.streeteasy.com/nyc/image/0/217831600.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/92/217831592.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/84/217831584.jpg",
-		"http://cdn-img3.streeteasy.com/nyc/image/75/217831575.jpg",
-		"http://cdn-img2.streeteasy.com/nyc/image/62/217831562.jpg",
-		"http://cdn-img2.streeteasy.com/nyc/image/54/217831554.jpg",
-		"http://cdn-img1.streeteasy.com/nyc/image/45/217831545.jpg",
-		"http://cdn-img3.streeteasy.com/nyc/image/31/217831531.jpg",
-		"http://cdn-img2.streeteasy.com/nyc/image/10/217831510.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/0/217831500.jpg",
-		"http://cdn-img1.streeteasy.com/nyc/image/89/217831489.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/80/217831480.jpg",
-		"http://cdn-img1.streeteasy.com/nyc/image/5/217831505.jpg"
-	],
-	"listingType": "For Sale",
-	"propertyType": "Co-op",
-	"neighborhood": "Lower East Side",
-	"fees": [
-		{
-			"amount": "USD 1430",
-			"type": "Maintenance"
-		}
-	],
-	"brokers": [
-		{
-			"agent": "Dianne Howard",
-			"company": "Corcoran"
-		},
-		{
-			"agent": "Nicholas Nicoletti",
-			"company": "Corcoran"
-		}
-	],
-	"features": [
-		{
-			"key": "Number of Rooms",
-			"value": "5"
-		},
-		{
-			"key": "Days On Market",
-			"value": "36 days at Wed Oct 26 2016 20:42:04 GMT+0000 (UTC)"
-		},
-		{
-			"key": "Building Amenities",
-			"value": [
-				"Children's Playroom",
-				"Gym",
-				"Laundry in Building",
-				"Live-in Super",
-				"Community Recreation Facilities"
-			]
-		},
-		{
-			"key": "Days On Market",
-			"value": "36 days at Wed Oct 26 2016 20:42:04 GMT+0000 (UTC)"
-		},
-		{
-			"key": "Outdoor Space",
-			"value": "Patio"
-		},
-		{
-			"key": "Highlights",
-			"value": [
-				"Doorman",
-				"Elevator"
-			]
-		},
-		{
-			"key": "Nearby Subway Stations",
-			"value": [
-				"F J M Z at Delancey St-Essex St 0.58 miles",
-				"F at East Broadway 0.59 miles",
-				"B D at Grand St 0.85 miles",
-				"F at 2nd Av 0.88 miles",
-				"J Z at Bowery 0.91 miles"
-			]
-		}
-	]
-}
-        var needleURL = 'http://streeteasy.com/building/455-fdr-drive-new_york/c16011602?80flag=For%20Sale';
-        var test = eightyApp.finalizeRecord(needleResult, needleURL);
+    });
 
-        var expectedObject = {
-	"dataType": "property",
-	"name": "453 Fdr Drive C1601-1602",
-	"address": "453 Fdr Drive C1601-1602",
-	"size": "1600 sq. ft.",
-	"numBedroom": "3",
-	"numBathroom": "2",
-	"prices": [
-		{
-			"dateSeen": "2016-10-26T20:42:04.654Z",
-			"date": "2016-07-11T00:00:00.000Z",
-			"offer": "Listed by Corcoran",
-			"price": "USD 1600000",
-			"pricePerSquareFoot": "USD 1000",
-			"sourceURL": "http://streeteasy.com/building/455-fdr-drive-new_york/c16011602"
-		},
-		{
-			"dateSeen": "2016-10-26T20:42:04.654Z",
-			"date": "2016-08-16T00:00:00.000Z",
-			"offer": "Listing entered contract",
-			"price": "USD 1600000",
-			"pricePerSquareFoot": "USD 1000",
-                        "sourceURL": "http://streeteasy.com/building/455-fdr-drive-new_york/c16011602"
-		}
-	],
-	"city": "New York",
-	"postalCode": "10002",
-	"parking": "Parking Available",
-	"country": "US",
-	"province": "NY",
-	"lat": "40.7129",
-	"long": "-73.9789",
-	"images": [
-		"http://cdn-img0.streeteasy.com/nyc/image/0/217831600.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/92/217831592.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/84/217831584.jpg",
-		"http://cdn-img3.streeteasy.com/nyc/image/75/217831575.jpg",
-		"http://cdn-img2.streeteasy.com/nyc/image/62/217831562.jpg",
-		"http://cdn-img2.streeteasy.com/nyc/image/54/217831554.jpg",
-		"http://cdn-img1.streeteasy.com/nyc/image/45/217831545.jpg",
-		"http://cdn-img3.streeteasy.com/nyc/image/31/217831531.jpg",
-		"http://cdn-img2.streeteasy.com/nyc/image/10/217831510.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/0/217831500.jpg",
-		"http://cdn-img1.streeteasy.com/nyc/image/89/217831489.jpg",
-		"http://cdn-img0.streeteasy.com/nyc/image/80/217831480.jpg",
-		"http://cdn-img1.streeteasy.com/nyc/image/5/217831505.jpg"
-	],
-	"listingType": "For Sale",
-	"propertyType": "Co-op",
-	"neighborhood": "Lower East Side",
-	"fees": [
-		{
-			"amount": "USD 1430",
-			"type": "Maintenance"
-		}
-	],
-	"brokers": [
-		{
-			"agent": "Dianne Howard",
-			"company": "Corcoran"
-		},
-		{
-			"agent": "Nicholas Nicoletti",
-			"company": "Corcoran"
-		}
-	],
-	"features": [
-		{
-			"key": "Number of Rooms",
-			"value": "5"
-		},
-		{
-			"key": "Days On Market",
-			"value": "36 days at Wed Oct 26 2016 20:42:04 GMT+0000 (UTC)"
-		},
-		{
-			"key": "Building Amenities",
-			"value": [
-				"Children's Playroom",
-				"Gym",
-				"Laundry in Building",
-				"Live-in Super",
-				"Community Recreation Facilities"
-			]
-		},
-		{
-			"key": "Days On Market",
-			"value": "36 days at Wed Oct 26 2016 20:42:04 GMT+0000 (UTC)"
-		},
-		{
-			"key": "Outdoor Space",
-			"value": "Patio"
-		},
-		{
-			"key": "Highlights",
-			"value": [
-				"Doorman",
-				"Elevator"
-			]
-		},
-		{
-			"key": "Nearby Subway Stations",
-			"value": [
-				"F J M Z at Delancey St-Essex St 0.58 miles",
-				"F at East Broadway 0.59 miles",
-				"B D at Grand St 0.85 miles",
-				"F at 2nd Av 0.88 miles",
-				"J Z at Bowery 0.91 miles"
-			]
-		}
-	],
-        "descriptions": [
+    it('Quantity Record', function(done){
+        let needleResult = {
+            dataType: 'product',
+            quantity: 5
+        };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let currentDate = eightyApp.getNearestDateMinute();
+        let expectedObject = {
+            dataType: 'product',
+            quantities: [
                 {
-                        "description": "Two adjacent apartments just combined and completely renovated to create an incredible 1600 sq. ft. three bedroom two bathroom home with breathtaking views of the East River, Corlears Hook Park, three bridges and the Financial District. This high floor apartment has three exposures (E/S/W) offering sunrise to sunset views and low monthly maintenance. Enter the welcoming foyer with two walk-in closets, custom lighting and an alcove office space. The main living space features an open kitchen with an extensive custom island with ample seating for eating, in addition to a separate dining area and large living room. The kitchen features brand new stainless steel appliances including a double door refrigerator with filtered water/ice maker, pull out under mount drawer microwave, dishwasher, gas range, under counter lighting, custom Shaker-style cabinetry and goose neck kitchen faucet. The living space contains both a corner picture window and full size kitchen window. At the far end of the main gallery you will find two corner bedrooms with full river views and walk in closets, as well as a subway tiled bathroom with soaking tub and two linen closets. An immense private master suite has been created with corner windows overlooking East River Park seating area oversize walk-in closet with window and en suite enlarged ceramic tiled master bathroom with glass enclosed shower stall with handheld and rain shower fixtures. Much attention to detail has been paid, including soffit and overhead lighting and sconces. Entirely new electrical throughout including fully wired for cable/internet. And there is much flexibility in how the space can best suit the needs of the new owner. East River Housing is located in a park-like setting in close proximity to East River Park and restaurants, galleries and boutiques on the Lower East Side. Resident fitness room, central laundry and 24-hour security and attended lobby. M14, M21 and M22 buses outside your door and F, J, M, Z, B, D trains at a short distance. Sorry no pets",
-                        "sourceURL": "http://streeteasy.com/building/455-fdr-drive-new_york/c16011602"
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: 5,
+                    dateSeen: [currentDate]
                 }
-        ],
-	"sourceURLs": [
-		"http://streeteasy.com/building/455-fdr-drive-new_york/c16011602"
-	]
-}
-
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
+    });
+
     it('Record 1', function(done){
-        var needleResult = {
-          dataType: 'product',
-          description: 'This is a description.',
-          prices: [
-            {
-              price: 'USD 5.00',
-              color: 'blue'
-            }
-          ],
-          sku: '12345'
-        }
-        var needleURL = 'http://www.80legs.com';
-        var test = eightyApp.finalizeRecord(needleResult, needleURL);
+        let needleResult = {
+            dataType: 'product',
+            description: 'This is a description.',
+            prices: [
+                {
+                    price: 'USD 5.00',
+                    color: 'blue'
+                }
+            ],
+            sku: '12345',
+            upc: '0000000000',
+            ean: '0000000000'
+        };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
 
-        var expectedObject = {
-          dataType: 'product',
-          prices: [
-            {
-              price: 'USD 5.00',
-              color: 'blue',
-              sourceURL: 'http://www.80legs.com'
-            }
-          ],
-          descriptions: [
-            {
-              description: 'This is a description.',
-              sourceURL: 'http://www.80legs.com'
-            }
-          ],
-          skus: [
-            {
-              sku: '12345',
-              sourceURL: 'http://www.80legs.com'
-            }
-          ],
-          sourceURLs: [
-            'http://www.80legs.com'
-	  ]
-        }
+        let currentDate = eightyApp.getNearestDateMinute();
+        let expectedObject = {
+            dataType: 'product',
+            prices: [
+                {
+                    color: 'blue',
+                    sourceURLs: ['http://www.80legs.com'],
+                    currency: 'USD',
+                    amountMin: 5.00,
+                    amountMax: 5.00,
+                    dateSeen: [currentDate]
+                }
+            ],
+            upc: [
+                '0000000000'
+            ],
+            ean: [
+                '0000000000'
+            ],
+            descriptions: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: 'This is a description.',
+                    dateSeen: [currentDate]
+                }
+            ],
+            skus: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: '12345'
+                }
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
 
         expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
         done();
-    })
-})
+    });
 
-/* UPDATES: 10-20-2016                                                          
- * Added function to convert alphanumeric phone numbers to numeric ones         
- */                                                                             
-describe("convertAlphanumericPhone", function() {                               
-    eightyApp = new EightyAppBase();                                            
-    it('does not harm numeric phone', function(done) {                          
-        var phone = "8303794354";                                               
-        var test = eightyApp.convertAlphanumericPhone(phone);                   
-        expect(test).to.equal(phone);                                           
-        done()
-    })                                                                          
+    it('Finalize without UPC', function(done){
+        let currentDate = eightyApp.getNearestDateMinute();
+
+        let needleResult = {
+            dataType: 'product',
+            brand: 'Dell',
+            manufacturerNumber: '94TR3',
+            name: 'Dell 94TR3 Power Companion (12"',
+            reviews: [
+                {
+                    title: 'Can\'t imagine life without it',
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateSeen: currentDate,
+                    username: 'ByJ. Mcginnis',
+                    rating: 5.0,
+                    text: 'Was not sure I was going to need this but now I can\'t imagine life without it. Fantastic product and great life so far. Charges quickly and can charge my laptop completely while maintaining power and still have enough juice to change my phone.'
+                }
+            ]
+        };
+        let needleURL = 'https://www.amazon.com/product-reviews/B01BX263WW/ref=cm_cr_arp_d_show_all?&reviewerType=all_reviews&ie=UTF8&pageNumber=0&showViewpoints=1&sortBy=bySubmissionDateDescending&80flag=%22brand%22:%22Dell%22,%22manufacturerNumber%22:%2294TR3%22,%22name%22:%22Dell 94TR3 Power Companion (12%22';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let expectedObject = {
+            dataType: 'product',
+            brand: 'Dell',
+            manufacturerNumber: '94TR3',
+            name: 'Dell 94TR3 Power Companion (12"',
+            reviews: [
+                {
+                    title: 'Can\'t imagine life without it',
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateSeen: [currentDate],
+                    username: 'ByJ. Mcginnis',
+                    rating: 5.0,
+                    text: 'Was not sure I was going to need this but now I can\'t imagine life without it. Fantastic product and great life so far. Charges quickly and can charge my laptop completely while maintaining power and still have enough juice to change my phone.',
+                    sourceURLs: ['https://www.amazon.com/product-reviews/B01BX263WW/ref=cm_cr_arp_d_show_all?&reviewerType=all_reviews&ie=UTF8&pageNumber=0&showViewpoints=1&sortBy=bySubmissionDateDescending']
+                }
+            ],
+            sourceURLs: [
+                'https://www.amazon.com/product-reviews/B01BX263WW/ref=cm_cr_arp_d_show_all?&reviewerType=all_reviews&ie=UTF8&pageNumber=0&showViewpoints=1&sortBy=bySubmissionDateDescending'
+            ]
+        };
+
+        expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
+        done();
+    });
+
+    it('Perfectly Fine Record', function(done){
+        let currentDate = eightyApp.getNearestDateMinute();
+
+        let needleResult = {
+            dataType: 'product',
+            prices: [
+                {
+                    color: 'blue',
+                    sourceURLs: ['http://www.80legs.com'],
+                    currency: 'USD',
+                    amountMin: 5.00,
+                    amountMax: 5.00,
+                    dateSeen: [currentDate]
+                }
+            ],
+            upc: [
+                '0000000000'
+            ],
+            ean: [
+                '0000000000'
+            ],
+            descriptions: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: 'This is a description.',
+                    dateSeen: [currentDate]
+                }
+            ],
+            skus: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: '12345'
+                }
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let expectedObject = {
+            dataType: 'product',
+            prices: [
+                {
+                    color: 'blue',
+                    sourceURLs: ['http://www.80legs.com'],
+                    currency: 'USD',
+                    amountMin: 5.00,
+                    amountMax: 5.00,
+                    dateSeen: [currentDate]
+                }
+            ],
+            upc: [
+                '0000000000'
+            ],
+            ean: [
+                '0000000000'
+            ],
+            descriptions: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: 'This is a description.',
+                    dateSeen: [currentDate]
+                }
+            ],
+            skus: [
+                {
+                    sourceURLs: ['http://www.80legs.com'],
+                    value: '12345'
+                }
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
+
+        expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
+        done();
+    });
+
+    it('Legacy Property Record', function(done){
+        let needleResult = {
+            dataType: 'properties',
+            address: '123 Anywhere St',
+            availableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z'
+                }
+            ],
+            brokers: [
+                {
+                    agent: 'Sam I am',
+                    company: 'Company',
+                    emails: [
+                        'sam@company.com'
+                    ],
+                    phones: [
+                        '212-212-2122'
+                    ],
+                    websites: [
+                        'http://www.company.com'
+                    ]
+                }
+            ],
+            buildingName: 'Thunderdome',
+            city: 'Austin',
+            country: 'US',
+            deposits: [
+                {
+                    amount: 123.00,
+                    currency: 'USD'
+                }
+            ],
+            descriptions: [
+                {
+                    value: 'Fight for your life at the Thunderdome'
+                }
+            ],
+            features: [
+                {
+                    key: 'Horde size',
+                    value: 'Very large'
+                }
+            ],
+            fees: [
+                {
+                    amountMin: 2.00,
+                    amountMax: 3.00,
+                    currency: 'USD',
+                    type: 'obnoxious fee'
+                }
+            ],
+            floorSizeValue: 2000,
+            floorSizeUnit: 'Sq. ft.',
+            hours: [
+                {
+                    day: 'monday',
+                    hour: '8 am to 5 pm'
+                }
+            ],
+            languagesSpoken: [
+                'English'
+            ],
+            latitude: 23.123,
+            leasingTerms: [
+                {
+                    value: 'Defeat Tina Turner'
+                }
+            ],
+            listingName: 'Beautiful dome full of gladiatorial combat',
+            longitude: 23.123,
+            lotSizeValue: 100.00,
+            lotSizeUnit: 'sq. meters',
+            managedBy: [
+                {
+                    value: 'the queen'
+                }
+            ],
+            mlsNumber: '1234',
+            nearbySchools: [
+                {
+                    assigned: 'TRUE',
+                    address: 'the wasteland',
+                    city: 'Austin',
+                    country: 'US',
+                    distanceValue: 1.0,
+                    distanceUnit: 'miles',
+                    faxes: [
+                        '123-123-1234'
+                    ],
+                    gradeLevels: [
+                        'all ages welcome'
+                    ],
+                    name: 'Kiddie Kombat',
+                    phonese: [
+                        '123-123-1234'
+                    ],
+                    postalCode: '78701',
+                    province: 'TX'
+                }
+            ],
+            neighborhoods: [
+                'Reverbating Walnuts'
+            ],
+            numBathroom: 0,
+            numBedroom: 50,
+            numFloor: 1,
+            numPeople: 1000,
+            numRoom: 10,
+            numUnit: 2,
+            parking: [
+                'All cars will be stolen'
+            ],
+            paymentTypes: [
+                'All money will be stolen'
+            ],
+            people: [
+                {
+                    email: 'max@iammax.com',
+                    name: 'Max',
+                    phone: '123-123-1234',
+                    title: 'Mad'
+                }
+            ],
+            petPolicy: 'No dogs allowed',
+            phones: [
+                '123-123-1234'
+            ],
+            postalCode: '78701',
+            prices: [
+                {
+                    amountMin: 100.00,
+                    amountMax: 1000.00,
+                    availability: 'available',
+                    comment: 'die die die',
+                    currency: 'USD',
+                    dateValidStart: '2017-07-07T00:00:00.000Z',
+                    dateValidEnd: '2017-07-07T00:00:00.000Z',
+                    isSale: 'FALSE',
+                    minStay: 'forever',
+                    period: '1 week',
+                    pricePerSquareFoot: 10.00
+                }
+            ],
+            propertyTaxes: [
+                {
+                    amount: 5.00,
+                    currency: 'USD'
+                }
+            ],
+            province: 'TX',
+            reviews: [
+                {
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateAdded: '2017-07-07T00:00:00.000Z',
+                    doRecommend: 'TRUE',
+                    rating: 5,
+                    text: 'Saw a lovely beheading the other day.',
+                    title: 'Aw yeah',
+                    userCity: 'Houston',
+                    username: 'MetalLord2000',
+                    userProvince: 'TX'
+                }
+            ],
+            rules: [
+                'Only super cool dudes allowed'
+            ],
+            statuses: [
+                {
+                    isUnderContract: 'true',
+                    type: 'For Sale'
+                }
+            ],
+            taxID: '12345',
+            unavailableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z'
+                }
+            ],
+            websiteIDs: [
+                'domain.com-123'
+            ]
+        };
+        let needleURL = 'http://www.80legs.com';
+        let test = eightyApp.finalizeRecord(needleResult, needleURL);
+
+        let currentDate = eightyApp.getNearestDateMinute();
+        let expectedObject = {
+            dataType: 'property',
+            address: '123 Anywhere St',
+            availableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            brokers: [
+                {
+                    agent: 'Sam I am',
+                    company: 'Company',
+                    emails: [
+                        'sam@company.com'
+                    ],
+                    phones: [
+                        '212-212-2122'
+                    ],
+                    websites: [
+                        'http://www.company.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            buildingName: 'Thunderdome',
+            city: 'Austin',
+            country: 'US',
+            deposits: [
+                {
+                    amount: 123.00,
+                    currency: 'USD',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            descriptions: [
+                {
+                    value: 'Fight for your life at the Thunderdome',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            features: [
+                {
+                    key: 'Horde size',
+                    value: [
+                        'Very large'
+                    ]
+                }
+            ],
+            fees: [
+                {
+                    amountMin: 2.00,
+                    amountMax: 3.00,
+                    currency: 'USD',
+                    type: 'obnoxious fee',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            floorSizeValue: 2000,
+            floorSizeUnit: 'Sq. ft.',
+            hours: [
+                {
+                    day: 'monday',
+                    hour: '8 am to 5 pm'
+                }
+            ],
+            languagesSpoken: [
+                'English'
+            ],
+            latitude: 23.123,
+            leasingTerms: [
+                {
+                    value: 'Defeat Tina Turner',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            listingName: 'Beautiful dome full of gladiatorial combat',
+            longitude: 23.123,
+            lotSizeValue: 100.00,
+            lotSizeUnit: 'sq. meters',
+            managedBy: [
+                {
+                    value: 'the queen',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            mlsNumber: '1234',
+            nearbySchools: [
+                {
+                    assigned: 'TRUE',
+                    address: 'the wasteland',
+                    city: 'Austin',
+                    country: 'US',
+                    distanceValue: 1.0,
+                    distanceUnit: 'miles',
+                    faxes: [
+                        '123-123-1234'
+                    ],
+                    gradeLevels: [
+                        'all ages welcome'
+                    ],
+                    name: 'Kiddie Kombat',
+                    phonese: [
+                        '123-123-1234'
+                    ],
+                    postalCode: '78701',
+                    province: 'TX',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            neighborhoods: [
+                'Reverbating Walnuts'
+            ],
+            numBathroom: 0,
+            numBedroom: 50,
+            numFloor: 1,
+            numPeople: 1000,
+            numRoom: 10,
+            numUnit: 2,
+            parking: [
+                'All cars will be stolen'
+            ],
+            paymentTypes: [
+                'All money will be stolen'
+            ],
+            people: [
+                {
+                    email: 'max@iammax.com',
+                    name: 'Max',
+                    phone: '123-123-1234',
+                    title: 'Mad',
+                    dateSeen: [currentDate]
+                }
+            ],
+            petPolicy: 'No dogs allowed',
+            phones: [
+                '123-123-1234'
+            ],
+            postalCode: '78701',
+            prices: [
+                {
+                    amountMin: 100.00,
+                    amountMax: 1000.00,
+                    availability: 'available',
+                    comment: 'die die die',
+                    currency: 'USD',
+                    dateValidStart: '2017-07-07T00:00:00.000Z',
+                    dateValidEnd: '2017-07-07T00:00:00.000Z',
+                    isSale: 'FALSE',
+                    minStay: 'forever',
+                    period: '1 week',
+                    pricePerSquareFoot: 10.00,
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            propertyTaxes: [
+                {
+                    amount: 5.00,
+                    currency: 'USD',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            province: 'TX',
+            reviews: [
+                {
+                    date: '2017-07-07T00:00:00.000Z',
+                    dateAdded: '2017-07-07T00:00:00.000Z',
+                    doRecommend: 'TRUE',
+                    rating: 5,
+                    text: 'Saw a lovely beheading the other day.',
+                    title: 'Aw yeah',
+                    userCity: 'Houston',
+                    username: 'MetalLord2000',
+                    userProvince: 'TX',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            rules: [
+                'Only super cool dudes allowed'
+            ],
+            statuses: [
+                {
+                    isUnderContract: 'true',
+                    type: 'For Sale',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            taxID: '12345',
+            unavailableDates: [
+                {
+                    endDate: '2017-07-07T00:00:00.000Z',
+                    startDate: '2017-07-07T00:00:00.000Z',
+                    sourceURLs: [
+                        'http://www.80legs.com'
+                    ],
+                    dateSeen: [currentDate]
+                }
+            ],
+            websiteIDs: [
+                'domain.com-123'
+            ],
+            sourceURLs: [
+                'http://www.80legs.com'
+            ]
+        };
+
+        expect(JSON.stringify(test)).to.equal(JSON.stringify(expectedObject));
+        done();
+    });
+});
+
+/* UPDATES: 10-20-2016
+ * Added function to convert alphanumeric phone numbers to numeric ones
+ */
+describe('convertAlphanumericPhone', function() {
+    eightyApp = new EightyAppBase();
+
+    it('does not harm numeric phone', function(done) {
+        let phone = '8303794354';
+        let test = eightyApp.convertAlphanumericPhone(phone);
+        expect(test).to.equal(phone);
+        done();
+    });
+
     it('properly converts alphanumeric number without hyphens', function(done) {
-        var phone = "18007777EBT";                                              
-        var test = eightyApp.convertAlphanumericPhone(phone);                   
-        expect(test).to.equal("18007777328");                                   
-        done()
-    })                                                                          
-    it('properly converts alphanumeric number with hyphens', function(done) {   
-        var phone = "770-382-GOLD";                                             
-        var test = eightyApp.convertAlphanumericPhone(phone);                   
-        expect(test).to.equal("770-382-4653");                                  
-        done()
-    })                                                                          
-})   
+        let phone = '18007777EBT';
+        let test = eightyApp.convertAlphanumericPhone(phone);
+        expect(test).to.equal('18007777328');
+        done();
+    });
+
+    it('properly converts alphanumeric number with hyphens', function(done) {
+        let phone = '770-382-GOLD';
+        let test = eightyApp.convertAlphanumericPhone(phone);
+        expect(test).to.equal('770-382-4653');
+        done();
+    });
+});
