@@ -4,6 +4,7 @@ STANDARDS FOR ADDING NEW FUNCTIONS
 2. Write tests. Tests should cover handling all bad input (undefined/null/""), handling an expected pattern of input, and predictable edge cases.
     Help for writing tests can be found in the 'test' directory
 3. Consult with a member of the Ops team after method and test completion. They will approve/deny pushing your changes to live.
+
 STANDARDS FOR WRITING NEW FUNCTIONS
 1. Functions should have simple, meaningful names. Preferably without abbreviations.
 2. Functions should not be domain specific. Functions should be applicable to common concepts, not one specific website.
