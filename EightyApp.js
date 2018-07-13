@@ -329,6 +329,9 @@ var EightyAppBase = function() {
             return eightyValue;
         }
 
+        // Encode 80value to handle 80values with uri forbidden characters
+        eightyValue = encodeURIComponent(eightyValue);
+
         var returnLink = link;
         if (link.indexOf('?') >= 0 && !/[?&]$/.test(link)) {
             returnLink = link + '&80flag=' + eightyValue;
@@ -363,6 +366,8 @@ var EightyAppBase = function() {
             }//if: endIndex was not found on an ampersand
 
             var eightyValue = trimmedURL.substring('80flag='.length, endIndex);
+            // Decode 80value so that the return value matches parameter passed to append80FlagToLink()
+            eightyValue = decodeURIComponent(eightyValue);
             return eightyValue;
         }
         return null;

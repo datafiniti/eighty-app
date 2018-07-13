@@ -656,6 +656,18 @@ describe('append80FlagToLink ', function(){
         expect(test).to.equal('http://www.test.com?flag1=do&flag2=not&flag3=modify&80flag=test');
         done();
     });
+    it('Handles 80flags with URI forbidden characters', function(done) {
+        let link = 'http://www.test.com/';
+        let eightyValue = 'a test with ampersands & questionmarks ?';
+        let test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('http://www.test.com/?80flag=a%20test%20with%20ampersands%20%26%20questionmarks%20%3F');
+
+        link = 'https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340';
+        eightyValue = '["Sports Nutrition & Workout Support"]';
+        test = eightyApp.append80FlagToLink(eightyValue, link);
+        expect(test).to.equal('https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340&80flag=%5B%22Sports%20Nutrition%20%26%20Workout%20Support%22%5D');
+        done();
+    });
 });//describe: "append80FlagToLink"
 
 describe('get80Value', function(){
@@ -715,6 +727,16 @@ describe('get80Value', function(){
         url = 'http://www.bestbuy.com/site/tvs/4k-ultra-hd-tvs/pcmcat333800050003.c?parameter1=bad&80flag=test2&parameter2=alsoBad';
         test = eightyApp.get80Value(url);
         expect(test).to.equal('test2');
+        done();
+    });
+    it('handles URI encoded 80flags and properly decodes them', function(done) {
+        let url = 'http://www.test.com/?80flag=a%20test%20with%20ampersands%20%26%20questionmarks%20%3F';
+        let test = eightyApp.get80Value(url);
+        expect(test).to.equal('a test with ampersands & questionmarks ?');
+
+        url = 'https://www.bodybuilding.com/store/opt/whey.html?skuId=OPT340&80flag=%5B%22Sports%20Nutrition%20%26%20Workout%20Support%22%5D';
+        test = eightyApp.get80Value(url);
+        expect(test).to.equal('["Sports Nutrition & Workout Support"]');
         done();
     });
 });//describe: "get80Value"
