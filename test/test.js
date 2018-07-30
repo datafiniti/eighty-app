@@ -43,6 +43,188 @@ describe('parseXml', function(){
     });
 });
 
+/* UPDATES: 7-30-2018
+ * Testing: Functionalilty of getNumberValue function
+ * 80app: Added getNumberValue function that extracts number expressions from text
+ */
+describe('getNumberValue', function() {
+    let expected;
+    let actual;
+    before(function() {
+        eightyApp = new EightyAppBase();
+        testObj = {
+            testString : '',
+            regex : null
+        };
+    });
+
+    it ('Throws a type error when not passed a valid regexp', function(done) {
+        try {
+            testObj.regex = 'not a regexp';
+            testObj.testString = 'does not even matter what this is';
+            eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        } catch (e) {
+            expected = true;
+            actual = true;
+            expect(actual).to.equal(expected);
+        }
+        done();
+    });
+
+    it ('Returns an empty string if passed an empty string or empty regex', function(done) {
+        testObj.testString = '';
+        testObj.regex = /test/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'this is a test';
+        testObj.regex = new RegExp();
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Returns empty string if regex match not found', function(done) {
+        testObj.testString = 'I have 15 objects';
+        testObj.regex = /not found/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Returns the closest whole number to the matched regex', function(done) {
+        testObj.testString = 'I have 5 dogs';
+        testObj.regex = /dogs/;
+        expected = '5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The number of dogs I have is 5';
+        testObj.regex = /dogs/;
+        expected = '5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have 5 dogs and 3 cats';
+        testObj.regex = /dogs/;
+        expected = '5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have 5 dogs and 3 cats';
+        testObj.regex = /cats/;
+        expected = '3';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Can handle various number expressions with decimals and dashes', function(done) {
+        testObj.testString = 'I have 4.5 dogs and 3 cats'; // half a dog sounds inhumane
+        testObj.regex = /dogs/;
+        expected = '4.5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have 4-5 dogs';
+        testObj.regex = /dogs/;
+        expected = '4-5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The temperature is -32 degrees celsius';
+        testObj.regex = /degrees/;
+        expected = '-32';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = '0.9-1.2% APR for well qualified buyers';
+        testObj.regex = /apr/i;
+        expected = '0.9-1.2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Excludes symbols not part of the number expression', function(done) {
+        testObj.testString = 'The car costs $4,123,544';
+        testObj.regex = /\$/;
+        expected = '4123544';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The number of dogs I have is 2.';
+        testObj.regex = /dogs/;
+        expected = '2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Can handle numeric regexps', function(done) {
+        testObj.testString = 'I have 1 4.0';
+        testObj.regex = /4.0/;
+        expected = '1';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The judges awared 4 5s and 5 4s';
+        testObj.regex = /5/;
+        expected = '4';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Can handle variable regexps', function(done) {
+        testObj.testString = 'I have 1 foo.barbarbarfoofoo';
+        testObj.regex = /(foo)+\.?(bar)*\.?(foo)*/;
+        expected = '1';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('does not have extensive NLP abilities', function(done) {
+        testObj.testString = 'I have five dogs';
+        testObj.regex = /dogs/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have way less than 100 dogs';
+        testObj.regex = /dogs/;
+        expected = '100';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I do not have 2 dogs';
+        testObj.regex = /dogs/;
+        expected = '2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        // Doesn't understand context, only returns the number closest the match
+        testObj.testString = 'I have 2 cats, but dogs? I have way more than that. I have 5';
+        testObj.regex = /dogs/;
+        expected = '2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+});
+
 /* UPDATES: 7-6-2018
  * Testing: Functionalilty of trimObject function
  * 80app: Added trimObject function that trims all nested strings in an object
