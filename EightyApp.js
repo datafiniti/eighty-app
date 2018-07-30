@@ -275,6 +275,10 @@ var EightyAppBase = function() {
             }
         }
         if (obj instanceof Object) {
+            // Weird edge case where dates don't have any keys
+            if (obj instanceof Date) {
+                return true;
+            }
             // Ensures that obj isn't an empty object
             if (Object.keys(obj).length === 0) {
                 return false;

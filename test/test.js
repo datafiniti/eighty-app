@@ -415,6 +415,11 @@ describe('isValid', function() {
         expected = true;
         actual = eightyApp.isValid(testObj);
         expect(expected).to.equal(actual);
+
+        testObj = new Date();
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
         done();
     });
 });
