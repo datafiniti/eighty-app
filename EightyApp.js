@@ -43,7 +43,6 @@ var EightyAppBase = function() {
     });
 
     /**
-<<<<<<< HEAD
      * Converts 24 hour time to the corresponding 12 hour time string
      * @param {String} time24
      */
@@ -79,8 +78,6 @@ var EightyAppBase = function() {
     };
 
     /**
-=======
->>>>>>> dec7a2af8140fc67f1a444343e4c78ea2216a591
      * Returns the corresponding number expression (as a string) for the attribute passed in. Number expressions
      * may conditionally have decimals, or dashes to delineate ranges or negative numbers. '1-2', '.4-0.54', and '-.6'
      * are all valid number expressions
@@ -91,13 +88,10 @@ var EightyAppBase = function() {
      * @param {RegExp} attribute the pattern to match within the string
      */
     this.getNumberValue = function(str, attribute) {
-<<<<<<< HEAD
         if (!str) {
             // Only want to work with valid strings
             return '';
         }
-=======
->>>>>>> dec7a2af8140fc67f1a444343e4c78ea2216a591
         if (!(attribute instanceof RegExp)) {
             // Want attribute to be a regexp only
             throw new TypeError('invalid regular expression ' + attribute.toString());
@@ -321,15 +315,7 @@ var EightyAppBase = function() {
             // Ensures that all dates are valid
             return obj.toString() !== 'Invalid Date';
         }
-<<<<<<< HEAD
         if (obj instanceof Object ) {
-=======
-        if (obj instanceof Object) {
-            // Weird edge case where dates don't have any keys
-            if (obj instanceof Date) {
-                return true;
-            }
->>>>>>> dec7a2af8140fc67f1a444343e4c78ea2216a591
             // Ensures that obj isn't an empty object
             return Object.keys(obj).length > 0;
         }
