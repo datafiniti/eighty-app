@@ -44,6 +44,7 @@ describe('parseXml', function(){
 });
 
 /* UPDATES: 7-30-2018
+<<<<<<< HEAD
  * Testing: Functionalilty of convert24HourTime function
  * 80app: Added convert24HourTime function that converts 24 hour time to well formed 12 hour time string
  */
@@ -142,6 +143,8 @@ describe('convert24HourTime', function() {
 });
 
 /* UPDATES: 7-30-2018
+=======
+>>>>>>> dec7a2af8140fc67f1a444343e4c78ea2216a591
  * Testing: Functionalilty of getNumberValue function
  * 80app: Added getNumberValue function that extracts number expressions from text
  */
@@ -169,6 +172,7 @@ describe('getNumberValue', function() {
         done();
     });
 
+<<<<<<< HEAD
     it ('Returns an empty string if passed an invalid string or empty regex', function(done) {
         testObj.testString = null;
         testObj.regex = /this is a test/;
@@ -176,6 +180,9 @@ describe('getNumberValue', function() {
         actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
         expect(actual).to.equal(expected);
 
+=======
+    it ('Returns an empty string if passed an empty string or empty regex', function(done) {
+>>>>>>> dec7a2af8140fc67f1a444343e4c78ea2216a591
         testObj.testString = '';
         testObj.regex = /test/;
         expected = '';
