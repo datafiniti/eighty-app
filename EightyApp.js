@@ -88,6 +88,10 @@ var EightyAppBase = function() {
      * @param {RegExp} attribute the pattern to match within the string
      */
     this.getNumberValue = function(str, attribute) {
+        if (!str) {
+            // Only want to work with valid strings
+            return '';
+        }
         if (!(attribute instanceof RegExp)) {
             // Want attribute to be a regexp only
             throw new TypeError('invalid regular expression ' + attribute.toString());
@@ -305,19 +309,15 @@ var EightyAppBase = function() {
         }
         if (obj.hasOwnProperty('length')) {
             // Ensures that arrays and DOM objects aren't empty
-            if (obj.length == 0) {
-                return false;
-            }
+            return obj.length > 0;
         }
-        if (obj instanceof Object) {
-            // Weird edge case where dates don't have any keys
-            if (obj instanceof Date) {
-                return true;
-            }
+        if (obj instanceof Date) {
+            // Ensures that all dates are valid
+            return obj.toString() !== 'Invalid Date';
+        }
+        if (obj instanceof Object ) {
             // Ensures that obj isn't an empty object
-            if (Object.keys(obj).length === 0) {
-                return false;
-            }
+            return Object.keys(obj).length > 0;
         }
         if (typeof(obj) === 'number' && obj < 0) {
             return false;

@@ -169,7 +169,13 @@ describe('getNumberValue', function() {
         done();
     });
 
-    it ('Returns an empty string if passed an empty string or empty regex', function(done) {
+    it ('Returns an empty string if passed an invalid string or empty regex', function(done) {
+        testObj.testString = null;
+        testObj.regex = /this is a test/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
         testObj.testString = '';
         testObj.regex = /test/;
         expected = '';
@@ -478,6 +484,14 @@ describe('isValid', function() {
         done();
     });
 
+    it ('returns false for invalid date objects', function(done) {
+        testObj = new Date('not a valid date');
+        expected = false;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
     it ('returns false for empty DOM elements', function(done) {
         let $ = cheerio.load('<h2 class="test">This is test HTML</h2>');
         testObj = $('not_a_tag');
@@ -519,6 +533,7 @@ describe('isValid', function() {
         actual = eightyApp.isValid(testObj);
         expect(expected).to.equal(actual);
         done();
+
     });
 });
 
