@@ -43,6 +43,286 @@ describe('parseXml', function(){
     });
 });
 
+/* UPDATES: 7-30-2018
+ * Testing: Functionalilty of convert24HourTime function
+ * 80app: Added convert24HourTime function that converts 24 hour time to well formed 12 hour time string
+ */
+describe('convert24HourTime', function() {
+    before(function() {
+        eightyApp = new EightyAppBase();
+    });
+
+    it ('Returns empty string for falsey input', function(done) {
+        testObj = null;
+        expected = '';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = undefined;
+        expected = '';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '';
+        expected = '';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('Appends AM to hours less than 12', function(done) {
+        testObj = '11:11';
+        expected = '11:11 AM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '4:20';
+        expected = '4:20 AM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '1:00';
+        expected = '1:00 AM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('Returns empty string for invalid time strings', function(done) {
+        testObj = 'This is not a valid time';
+        expected = '';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '36:00';
+        expected = '';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('Converts hours greater than 12 to the corresponding PM time', function(done) {
+        testObj = '16:20';
+        expected = '4:20 PM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '22:45';
+        expected = '10:45 PM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('Works on 0 and 24 hours', function(done) {
+        testObj = '24:00';
+        expected = '12:00 AM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '0:00';
+        expected = '12:00 AM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+
+    it ('Works if no minutes are provided', function(done) {
+        testObj = '8';
+        expected = '8 AM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = '17';
+        expected = '5 PM';
+        actual = eightyApp.convert24HourTime(testObj);
+        expect(expected).to.equal(actual);
+        done();
+    });
+});
+
+/* UPDATES: 7-30-2018
+ * Testing: Functionalilty of getNumberValue function
+ * 80app: Added getNumberValue function that extracts number expressions from text
+ */
+describe('getNumberValue', function() {
+    let expected;
+    let actual;
+    before(function() {
+        eightyApp = new EightyAppBase();
+        testObj = {
+            testString : '',
+            regex : null
+        };
+    });
+
+    it ('Throws a type error when not passed a valid regexp', function(done) {
+        try {
+            testObj.regex = 'not a regexp';
+            testObj.testString = 'does not even matter what this is';
+            eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        } catch (e) {
+            expected = true;
+            actual = true;
+            expect(actual).to.equal(expected);
+        }
+        done();
+    });
+
+    it ('Returns an empty string if passed an empty string or empty regex', function(done) {
+        testObj.testString = '';
+        testObj.regex = /test/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'this is a test';
+        testObj.regex = new RegExp();
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Returns empty string if regex match not found', function(done) {
+        testObj.testString = 'I have 15 objects';
+        testObj.regex = /not found/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Returns the closest whole number to the matched regex', function(done) {
+        testObj.testString = 'I have 5 dogs';
+        testObj.regex = /dogs/;
+        expected = '5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The number of dogs I have is 5';
+        testObj.regex = /dogs/;
+        expected = '5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have 5 dogs and 3 cats';
+        testObj.regex = /dogs/;
+        expected = '5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have 5 dogs and 3 cats';
+        testObj.regex = /cats/;
+        expected = '3';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Can handle various number expressions with decimals and dashes', function(done) {
+        testObj.testString = 'I have 4.5 dogs and 3 cats'; // half a dog sounds inhumane
+        testObj.regex = /dogs/;
+        expected = '4.5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have 4-5 dogs';
+        testObj.regex = /dogs/;
+        expected = '4-5';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The temperature is -32 degrees celsius';
+        testObj.regex = /degrees/;
+        expected = '-32';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = '0.9-1.2% APR for well qualified buyers';
+        testObj.regex = /apr/i;
+        expected = '0.9-1.2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Excludes symbols not part of the number expression', function(done) {
+        testObj.testString = 'The car costs $4,123,544';
+        testObj.regex = /\$/;
+        expected = '4123544';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The number of dogs I have is 2.';
+        testObj.regex = /dogs/;
+        expected = '2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Can handle numeric regexps', function(done) {
+        testObj.testString = 'I have 1 4.0';
+        testObj.regex = /4.0/;
+        expected = '1';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'The judges awared 4 5s and 5 4s';
+        testObj.regex = /5/;
+        expected = '4';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('Can handle variable regexps', function(done) {
+        testObj.testString = 'I have 1 foo.barbarbarfoofoo';
+        testObj.regex = /(foo)+\.?(bar)*\.?(foo)*/;
+        expected = '1';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+
+    it ('does not have extensive NLP abilities', function(done) {
+        testObj.testString = 'I have five dogs';
+        testObj.regex = /dogs/;
+        expected = '';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I have way less than 100 dogs';
+        testObj.regex = /dogs/;
+        expected = '100';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        testObj.testString = 'I do not have 2 dogs';
+        testObj.regex = /dogs/;
+        expected = '2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        // Doesn't understand context, only returns the number closest the match
+        testObj.testString = 'I have 2 cats, but dogs? I have way more than that. I have 5';
+        testObj.regex = /dogs/;
+        expected = '2';
+        actual = eightyApp.getNumberValue(testObj.testString, testObj.regex);
+        expect(actual).to.equal(expected);
+
+        done();
+    });
+});
+
 /* UPDATES: 7-6-2018
  * Testing: Functionalilty of trimObject function
  * 80app: Added trimObject function that trims all nested strings in an object
@@ -230,6 +510,11 @@ describe('isValid', function() {
 
         let $ = cheerio.load('<h2 class="valid_selector">This is test HTML</h2>');
         testObj = $('.valid_selector');
+        expected = true;
+        actual = eightyApp.isValid(testObj);
+        expect(expected).to.equal(actual);
+
+        testObj = new Date();
         expected = true;
         actual = eightyApp.isValid(testObj);
         expect(expected).to.equal(actual);
@@ -2333,6 +2618,9 @@ describe('finalizeRecord', function(){
                     ],
                     websites: [
                         'http://www.company.com'
+                    ],
+                    sourceURLs: [
+                        'http://www.80legs.com'
                     ],
                     dateSeen: [currentDate]
                 }

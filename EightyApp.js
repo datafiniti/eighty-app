@@ -43,6 +43,100 @@ var EightyAppBase = function() {
     });
 
     /**
+     * Converts 24 hour time to the corresponding 12 hour time string
+     * @param {String} time24
+     */
+    this.convert24HourTime = function(time24){
+        if (!time24) {
+            return '';
+        }
+
+        let splitTime = time24.split(':');
+        let hours = splitTime[0].replace(/[^\d]/g, '') || '';
+        let minutes = splitTime[1] && splitTime[1].replace(/[^\d]/g, '');
+        minutes = minutes ? ':' + minutes : '';
+
+        let meridiem = '';
+
+        if (!hours || hours > 24 || hours < 0) {
+            // Invalid hours
+            return '';
+        }
+        if (hours >= 12) {
+            hours %= 12;
+            meridiem = ' PM';
+        } else {
+            meridiem =  ' AM';
+        }
+
+        if (hours == 0) {
+            hours = 12;
+            meridiem  = ' AM';
+        }
+
+        return hours + minutes + meridiem;
+    };
+
+    /**
+     * Returns the corresponding number expression (as a string) for the attribute passed in. Number expressions
+     * may conditionally have decimals, or dashes to delineate ranges or negative numbers. '1-2', '.4-0.54', and '-.6'
+     * are all valid number expressions
+     * getNumberValue('I have 2 dogs and 3 cats', /dogs/) => 2
+     * getNumberValue('I have 2 dogs and 3 cats', /cats/) => 3
+     * see test.js for more examples
+     * @param {String} str the String to parse for numbers
+     * @param {RegExp} attribute the pattern to match within the string
+     */
+    this.getNumberValue = function(str, attribute) {
+        if (!(attribute instanceof RegExp)) {
+            // Want attribute to be a regexp only
+            throw new TypeError('invalid regular expression ' + attribute.toString());
+        }
+
+        // Really scary regex that matches the closest number expression before and the closest number expression after the first occurance of attribute
+        let regex = new RegExp('(\\d*\\.??\\d*-??\\d*\\.??\\d+)?[^\\d]*?' + attribute.source + '[^\\d]*(\\d*\\.??\\d*-??\\d*\\.??\\d+)?', 'g' + attribute.flags);
+
+        // So that we can properly collect numbers with commas
+        str = str.replace(/(\d),(\d)/g, ($0, $1, $2) => { return $1 + $2; });
+
+        let match = regex.exec(str);
+
+        if (!match || !match[1] && !match[2]) {
+            // If attribute pattern wasn't matched in str
+            return '';
+        }
+        if (!match[1]) {
+            // If only number expression after attribute was found
+            return match[2];
+        }
+        if (!match[2]) {
+            // If only number expression before attribute was found
+            return match[1];
+        }
+
+        // Return the number expression match that was closest to the attribute match
+
+        let matchInfo = str.match(attribute);
+        let matchLength = matchInfo[0].length;
+
+        let matchStartIndex = matchInfo.index;
+        let matchEndIndex = matchStartIndex + matchLength;
+
+        // Distance from first match to attribute match
+        let distOne = Math.abs(matchStartIndex - (str.match(match[1]).index + match[1].length));
+
+        // Distance from the second match to attribute match
+        let distTwo = Math.abs((regex.lastIndex - match[2].length) - matchEndIndex);
+
+        let matches = {
+            [distOne] : match[1],
+            [distTwo] : match[2]
+        };
+
+        return matches[Math.min(distOne, distTwo)];
+    };
+
+    /**
      * Removes all duplicates from each array field in data object. Duplicates are defined by
      * @param comparator. If no comparator function is specified, defaults to _.isEqual() with
      * case insensitive string comparisons
@@ -216,6 +310,10 @@ var EightyAppBase = function() {
             }
         }
         if (obj instanceof Object) {
+            // Weird edge case where dates don't have any keys
+            if (obj instanceof Date) {
+                return true;
+            }
             // Ensures that obj isn't an empty object
             if (Object.keys(obj).length === 0) {
                 return false;
@@ -1870,6 +1968,9 @@ var EightyAppBase = function() {
             }
             if ('availableDates' in result) {
                 finalizedResult.availableDates  = app.finalizeFieldAsListOfObjects('availableDates', result.availableDates, url);
+            }
+            if ('brokers' in result) {
+                finalizedResult.brokers        = app.finalizeFieldAsListOfObjects('brokers', result.brokers, url);
             }
             if ('deposits' in result) {
                 finalizedResult.deposits        = app.finalizeFieldAsListOfObjects('deposits', result.deposits, url);
