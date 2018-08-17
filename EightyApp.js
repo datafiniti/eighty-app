@@ -43,6 +43,41 @@ var EightyAppBase = function() {
     });
 
     /**
+     * Converts 24 hour time to the corresponding 12 hour time string
+     * @param {String} time24
+     */
+    this.convert24HourTime = function(time24){
+        if (!time24) {
+            return '';
+        }
+
+        let splitTime = time24.split(':');
+        let hours = splitTime[0].replace(/[^\d]/g, '') || '';
+        let minutes = splitTime[1] && splitTime[1].replace(/[^\d]/g, '');
+        minutes = minutes ? ':' + minutes : '';
+
+        let meridiem = '';
+
+        if (!hours || hours > 24 || hours < 0) {
+            // Invalid hours
+            return '';
+        }
+        if (hours >= 12) {
+            hours %= 12;
+            meridiem = ' PM';
+        } else {
+            meridiem =  ' AM';
+        }
+
+        if (hours == 0) {
+            hours = 12;
+            meridiem  = ' AM';
+        }
+
+        return hours + minutes + meridiem;
+    };
+
+    /**
      * Returns the corresponding number expression (as a string) for the attribute passed in. Number expressions
      * may conditionally have decimals, or dashes to delineate ranges or negative numbers. '1-2', '.4-0.54', and '-.6'
      * are all valid number expressions
@@ -53,6 +88,10 @@ var EightyAppBase = function() {
      * @param {RegExp} attribute the pattern to match within the string
      */
     this.getNumberValue = function(str, attribute) {
+        if (!str) {
+            // Only want to work with valid strings
+            return '';
+        }
         if (!(attribute instanceof RegExp)) {
             // Want attribute to be a regexp only
             throw new TypeError('invalid regular expression ' + attribute.toString());
@@ -270,19 +309,15 @@ var EightyAppBase = function() {
         }
         if (obj.hasOwnProperty('length')) {
             // Ensures that arrays and DOM objects aren't empty
-            if (obj.length == 0) {
-                return false;
-            }
+            return obj.length > 0;
         }
-        if (obj instanceof Object) {
-            // Weird edge case where dates don't have any keys
-            if (obj instanceof Date) {
-                return true;
-            }
+        if (obj instanceof Date) {
+            // Ensures that all dates are valid
+            return obj.toString() !== 'Invalid Date';
+        }
+        if (obj instanceof Object ) {
             // Ensures that obj isn't an empty object
-            if (Object.keys(obj).length === 0) {
-                return false;
-            }
+            return Object.keys(obj).length > 0;
         }
         if (typeof(obj) === 'number' && obj < 0) {
             return false;
@@ -472,12 +507,23 @@ var EightyAppBase = function() {
 
         if (href.indexOf(domainCheck) !== -1) {
             if (href.indexOf('http://') == -1 && href.indexOf('https://') == -1) {
+                if (href.indexOf('/') == 0){
+                    if (href.indexOf('//') == 0){
+                        return 'http:' + href;
+                    }
+                    return 'http:/' + href;
+                }
                 return 'http://' + href;
             } else {
                 return href;
             }
         } else {
-            if (domain[domain.length - 1] == '/' && href[0] == '/') {
+            //outside domains are tagged with a double-slash in most cases
+            if (href.indexOf('//') === 0){
+                //must add http: - href would have been returned earlier if it had it
+                return 'http:' + href;
+            }
+            else if (domain[domain.length - 1] == '/' && href[0] == '/') {
                 domain = domain.slice(0, -1);
             } else if (domain[domain.length - 1] !== '/' && href[0] !== '/') {
                 domain += '/';
@@ -1933,6 +1979,9 @@ var EightyAppBase = function() {
             }
             if ('availableDates' in result) {
                 finalizedResult.availableDates  = app.finalizeFieldAsListOfObjects('availableDates', result.availableDates, url);
+            }
+            if ('brokers' in result) {
+                finalizedResult.brokers        = app.finalizeFieldAsListOfObjects('brokers', result.brokers, url);
             }
             if ('deposits' in result) {
                 finalizedResult.deposits        = app.finalizeFieldAsListOfObjects('deposits', result.deposits, url);
