@@ -1989,6 +1989,9 @@ var EightyAppBase = function() {
             if ('fees' in result) {
                 finalizedResult.fees            = app.finalizeFieldAsListOfObjects('fees', result.fees, url);
             }
+            if ('financingAndLeasing' in result) {
+	            finalizedResult.financingAndLeasing = app.finalizeFieldAsListOfObjects('financingAndLeasing', result.financingAndLeasing, url);
+	        }
             if ('leasingTerms' in result) {
                 finalizedResult.leasingTerms    = app.finalizeFieldAsListOfObjects('leasingTerms', result.leasingTerms, url);
             }
@@ -2069,6 +2072,12 @@ var EightyAppBase = function() {
                 for (let i = 0; i < finalizedResult.fees.length; i++) {
                     finalizedResult.fees[i].dateSeen = [];
                     finalizedResult.fees[i].dateSeen.push(dateSeen);
+                }
+            
+            if ('financingAndLeasing' in finalizedResult)
+                for (let i = 0; i < finalizedResult.financingAndLeasing.length; i++) {
+                    finalizedResult.financingAndLeasing[i].dateSeen = [];
+	                finalizedResult.financingAndLeasing[i].dateSeen.push(dateSeen);
                 }
 
             if ('leasingTerms' in finalizedResult)
