@@ -1683,7 +1683,7 @@ var EightyAppBase = function() {
     };
 
     // Map any legacy data type values to new/current data type values
-    this.DataType = function(dataType) {
+    this.finalizeDataType = function(dataType) {
 
         var newDataType = dataType;
 
