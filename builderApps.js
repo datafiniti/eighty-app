@@ -167,12 +167,11 @@ const crawlInternal = function (links, $html, url) {
         href = href.replace('www.', '');
       }
 
-      let linkDomain = currentUrl.match(/^[\w.]+/);
+      let linkDomain = href.match(/^[\w.]+/);
       if(linkDomain) linkDomain = String(linkDomain);
     
-
       if (linkDomain && (linkDomain === domain)) {
-        internalLinks.add(href)
+        internalLinks.add(href);
       }
     }
   })
