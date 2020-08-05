@@ -141,27 +141,22 @@ const crawlInternal = function (links, $html, url) {
   if (!url) {
     return links;
   }
+  let currentUrl = url;
 
     // Use a set so we don't duplicate any links
   let internalLinks = new Set()
 
-    // Regex to eliminate any subdomains
-  const subDomainRegex = new RegExp(/^\w+./g)
-
-    // Get the host, remove any Subdomain
-  let host;
-
-  try {
-    host = urlLib.parse(url).host
-  } catch (e) {
-    return links;
+  //check for http:// or https:// in current link and remove if present
+  if(currentUrl.indexOf('https://') > -1 || currentUrl.indexOf('http://') > -1 || currentUrl.indexOf('www.') > -1){
+    currentUrl = currentUrl.replace('https://', '');
+    currentUrl = currentUrl.replace('http://', '');
+    currentUrl = currentUrl.replace('www.', '');
   }
 
-  if (host.split('.').length > 2) {
-    host = host.replace(subDomainRegex, '')
-  }
+  //get current url domain
+  
 
-    // Get each link on the page
+  //get each link on page
   $html.find('a').each((i, link) => {
     const href = $(link).attr('href')
     
