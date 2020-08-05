@@ -19,47 +19,42 @@ const getExternal = function (links, $html, url) {
   if (!url) {
     return links;
   }
+  let currentUrl = url;
 
     // Use a set so we don't duplicate any links
   let externalLinks = new Set()
 
-    // Regex to eliminate any subdomains
-  const subDomainRegex = new RegExp(/^\w+./g)
-
-    // Get the host, remove any Subdomain
-  let host;
-
-  try {
-    host = urlLib.parse(url).host
-  } catch (e) {
-    return links;
+  //check for http:// or https:// in current link and remove if present
+  if(currentUrl.indexOf('https://') > -1 || currentUrl.indexOf('http://') > -1 || currentUrl.indexOf('www.') > -1){
+    currentUrl = currentUrl.replace('https://', '');
+    currentUrl = currentUrl.replace('http://', '');
+    currentUrl = currentUrl.replace('www.', '');
   }
 
-  if (host.split('.').length > 2) {
-    host = host.replace(subDomainRegex, '')
-  }
-
-    // Get each link on the page
+  //get current url domain
+  let domain = currentUrl.match(/^\w+.\w+/);
+  
+  //get each link on page
   $html.find('a').each((i, link) => {
-    const href = $(link).attr('href')
+    let href = $(link).attr('href')
+    let moddedhref = href;
     
-    let linkHost
+    if(href && !(/^\//.test(href))){
 
-    try {
-      linkHost = urlLib.parse(href).host
-    } catch (e) {
-      return; // Do nothing with this href
-    }
+      if(href.indexOf('https://') > -1 || href.indexOf('http://') > -1 || href.indexOf('www.') > -1){
+        moddedhref = moddedhref.replace('https://', '');
+        moddedhref = moddedhref.replace('http://', '');
+        moddedhref = moddedhref.replace('www.', '');
+      }
 
-    // Remove any subdomain
-    if (typeof linkHost === 'string' && linkHost && linkHost.split('.').length > 2) {
-      linkHost = linkHost.replace(subDomainRegex, '')
-    }
+      let linkDomain = String(moddedhref.match(/^\w+.\w+/));
 
-        // If the host doesn't match the host of the url we are crawling,
-        // we add it to the externalLinks array
-    if (linkHost && (linkHost !== host)) {
-      externalLinks.add(href)
+      if (linkDomain && (linkDomain != domain && linkDomain.indexOf(domain) == -1 && domain.indexOf(linkDomain) == -1)) {
+        externalLinks.add(href)
+        console.log(typeof(domain) + " : " + typeof(linkDomain));
+        console.log((link != domain) + '  :  ' + (link == domain));       
+        console.log(linkDomain + ' : ' + domain + ' : ' + href)
+      }
     }
   })
 
@@ -155,7 +150,7 @@ const crawlInternal = function (links, $html, url) {
 
   //get current url domain
   let domain = currentUrl.match(/^\w+.\w+/);
-  
+
   //get each link on page
   $html.find('a').each((i, link) => {
     let href = $(link).attr('href')
