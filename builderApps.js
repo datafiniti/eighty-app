@@ -154,29 +154,29 @@ const crawlInternal = function (links, $html, url) {
   }
 
   //get current url domain
+  let domain = currentUrl.match(/^\w+.\w+/);
   
-
   //get each link on page
   $html.find('a').each((i, link) => {
-    const href = $(link).attr('href')
+    let href = $(link).attr('href')
     
-    let linkHost
-
-    try {
-      linkHost = urlLib.parse(href).host
-    } catch (e) {
-      return; // Do nothing with this href
+    if(/^\//.test(href)){
+      href = domain+href;
+      internalLinks.add(href);
     }
+    else if (href){
 
-    // Remove any subdomain
-    if (typeof linkHost === 'string' && linkHost && linkHost.split('.').length > 2) {
-      linkHost = linkHost.replace(subDomainRegex, '')
-    }
+      if(href.indexOf('https://') > -1 || href.indexOf('http://') > -1 || href.indexOf('www.') > -1){
+        href = href.replace('https://', '');
+        href = href.replace('http://', '');
+        href = href.replace('www.', '');
+      }
 
-        // If the host doesn't match the host of the url we are crawling,
-        // we add it to the internalLinks array
-    if (linkHost && (linkHost === host)) {
-      internalLinks.add(href)
+      let linkDomain = href.match(/^\w+.\w+/);
+
+      if (linkDomain && (linkDomain === domain)) {
+        internalLinks.add(href)
+      }
     }
   })
 
