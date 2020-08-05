@@ -32,7 +32,8 @@ const getExternal = function (links, $html, url) {
   }
 
   //get current url domain
-  let domain = currentUrl.match(/^\w+.\w+/);
+  let domain = currentUrl.match(/^[\w.]+/);
+  if(domain) domain = String(domain);
   
   //get each link on page
   $html.find('a').each((i, link) => {
@@ -47,13 +48,11 @@ const getExternal = function (links, $html, url) {
         moddedhref = moddedhref.replace('www.', '');
       }
 
-      let linkDomain = String(moddedhref.match(/^\w+.\w+/));
+      let linkDomain = moddedhref.match(/^[\w.]+/);
+      if(linkDomain) linkDomain = String(linkDomain)
 
-      if (linkDomain && (linkDomain != domain && linkDomain.indexOf(domain) == -1 && domain.indexOf(linkDomain) == -1)) {
-        externalLinks.add(href)
-        console.log(typeof(domain) + " : " + typeof(linkDomain));
-        console.log((link != domain) + '  :  ' + (link == domain));       
-        console.log(linkDomain + ' : ' + domain + ' : ' + href)
+      if (linkDomain && (linkDomain != domain)) {
+        externalLinks.add(href);
       }
     }
   })
@@ -149,7 +148,8 @@ const crawlInternal = function (links, $html, url) {
   }
 
   //get current url domain
-  let domain = currentUrl.match(/^\w+.\w+/);
+  let domain = currentUrl.match(/^[\w.]+/);
+  if(domain) domain = String(domain);
 
   //get each link on page
   $html.find('a').each((i, link) => {
@@ -167,7 +167,9 @@ const crawlInternal = function (links, $html, url) {
         href = href.replace('www.', '');
       }
 
-      let linkDomain = href.match(/^\w+.\w+/);
+      let linkDomain = currentUrl.match(/^[\w.]+/);
+      if(linkDomain) linkDomain = String(linkDomain);
+    
 
       if (linkDomain && (linkDomain === domain)) {
         internalLinks.add(href)
