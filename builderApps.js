@@ -40,7 +40,7 @@ const getExternal = function (links, $html, url) {
     let href = $(link).attr('href')
     let moddedhref = href;
     
-    if(href && !(/^\//.test(href))){
+    if(href && href.indexOf('.') > -1 && href.indexOf('mailto') == -1){
 
       if(href.indexOf('https://') > -1 || href.indexOf('http://') > -1 || href.indexOf('www.') > -1){
         moddedhref = moddedhref.replace('https://', '');
@@ -155,11 +155,11 @@ const crawlInternal = function (links, $html, url) {
   $html.find('a').each((i, link) => {
     let href = $(link).attr('href')
     
-    if(/^\//.test(href)){
+    if(/^\//.test(href) && href.indexOf('mailto') == -1){
       href = domain+href;
       internalLinks.add(href);
     }
-    else if (href){
+    else if (href && href.indexOf('.') > -1 && href.indexOf('mailto') == -1){
 
       if(href.indexOf('https://') > -1 || href.indexOf('http://') > -1 || href.indexOf('www.') > -1){
         href = href.replace('https://', '');
