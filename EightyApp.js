@@ -42,6 +42,17 @@ var EightyAppBase = function() {
         this[app] = builderApps[app];
     });
 
+    this.checkHealth = function(crawlJob, crawlResult) {
+        let output = { processDocument: true , parseLinks: true , pageType: undefined };
+        if (crawlResult.processDocument.error) {
+            output.processDocument = false;
+        }
+        if (crawlResult.parseLinks.error) {
+            output.parseLinks = false;
+        }
+        return output;
+    }
+
     /**
      * Converts 24 hour time to the corresponding 12 hour time string
      * @param {String} time24
