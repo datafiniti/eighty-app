@@ -53,6 +53,16 @@ var EightyAppBase = function() {
         return output;
     }
 
+    this.validateCheckHealth = function(output) {
+        if (output.pageType) {
+            if (output.pageType === 'parseLinks' || output.pageType === 'processDocument' || output.pageType === 'both' || output.pageType === 'unexpected') {
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Converts 24 hour time to the corresponding 12 hour time string
      * @param {String} time24
