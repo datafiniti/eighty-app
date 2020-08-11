@@ -1,6 +1,6 @@
 {
   "name": "eighty-app",
-  "version": "1.21.2",
+  "version": "1.21.3-alpha.0",
   "description": "A class that people can extend to create their own custom scraper to use on 80legs.com",
   "author": "datafiniti",
   "main": "EightyApp.js",
