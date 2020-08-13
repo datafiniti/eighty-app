@@ -42,25 +42,27 @@ var EightyAppBase = function() {
         this[app] = builderApps[app];
     });
 
+    /**
+     * Default function Crawl Health Monitor will use to determine health of 80app execution.
+     * @param {Object} crawlJob 
+     * @param {Object} crawlResult 
+     */
     this.checkHealth = function(crawlJob, crawlResult) {
-        let output = { processDocument: true , parseLinks: true , pageType: undefined };
+        let output = {
+            pageTypes: {
+                processDocument: true,
+                parseLinks: true
+            }
+        }
+
         if (crawlResult.processDocument.error) {
-            output.processDocument = false;
+            output.pageTypes.processDocument = false;
         }
         if (crawlResult.parseLinks.error) {
-            output.parseLinks = false;
+            output.pageTypes.parseLinks = false;
         }
-        return output;
-    }
 
-    this.validateCheckHealth = function(output) {
-        if (output.pageType) {
-            if (output.pageType === 'parseLinks' || output.pageType === 'processDocument' || output.pageType === 'both' || output.pageType === 'unexpected') {
-                return true;
-            }
-            return false;
-        }
-        return true;
+        return output;
     }
 
     /**
