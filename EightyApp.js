@@ -43,6 +43,29 @@ var EightyAppBase = function() {
     });
 
     /**
+     * Default function Crawl Health Monitor will use to determine health of 80app execution.
+     * @param {Object} crawlJob 
+     * @param {Object} crawlResult 
+     */
+    this.checkHealth = function(crawlJob, crawlResult) {
+        let output = {
+            pageTypes: {
+                processDocument: true,
+                parseLinks: true
+            }
+        }
+
+        if (crawlResult.processDocument.error) {
+            output.pageTypes.processDocument = false;
+        }
+        if (crawlResult.parseLinks.error) {
+            output.pageTypes.parseLinks = false;
+        }
+
+        return output;
+    }
+
+    /**
      * Converts 24 hour time to the corresponding 12 hour time string
      * @param {String} time24
      */
