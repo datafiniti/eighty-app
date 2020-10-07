@@ -45,24 +45,69 @@ var EightyAppBase = function() {
     /**
      * Default function Crawl Health Monitor will use to determine health of 80app execution.
      * @param {Object} crawlJob 
-     * @param {Object} crawlResult 
+     * @param {Object} crawlResult
+     * @param {String} url
+     * @param {Object} extras
      */
-    this.checkHealth = function(crawlJob, crawlResult) {
-        let output = {
-            pageTypes: {
-                processDocument: true,
-                parseLinks: true
+    this.checkHealth = function(crawlJob, crawlResult, url, extras) {
+
+        // Standardize results to array of result(s)
+        const resultIsArray = Array.isArray(crawlResult);
+        
+        let results;
+        if (resultIsArray) {
+            results = crawlResult;
+        } else {
+            results = [crawlResult];
+        }
+
+        let outputs = [];
+        const dataType = extras.dataType;
+
+        for (let result of results) {
+            let output = {
+                pageTypes: {
+                    processDocument: true,
+                    parseLinks: true
+                }
             }
-        }
+    
+            if (result.processDocument.error) {
+                output.pageTypes.processDocument = false;
+            }
+            if (result.parseLinks.error) {
+                output.pageTypes.parseLinks = false;
+            }
 
-        if (crawlResult.processDocument.error) {
-            output.pageTypes.processDocument = false;
-        }
-        if (crawlResult.parseLinks.error) {
-            output.pageTypes.parseLinks = false;
-        }
+            // Check for target fields based on dataType.
+            if (dataType && result.processDocument && result.processDocument.result && result.processDocument.result.data) {
+                const data = result.processDocument.result.data;
+                switch (dataType) {
+                    case 'business':
+                        if (data.latitude && data.latitude.length && data.longitude && data.longitude.length) {
+                            output.pageTypes.latlong = true;
+                        }
+                        break;
+                    case 'product':
+                        if (data.upc && data.upc.length) {
+                            output.pageTypes.upc = true;
+                        }
+                        break;
+                    case 'property':
+                        if (data.mostRecentStatus && data.mostRecentStatus.length) {
+                            output.pageTypes.mostRecentStatus = true;
+                        }
+                }
+            }
 
-        return output;
+            outputs.push(output)
+        }
+        
+        if (outputs.length > 1) {
+            return outputs
+        } else {
+            return outputs[0];
+        }
     }
 
     /**
