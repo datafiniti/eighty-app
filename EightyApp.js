@@ -51,63 +51,69 @@ var EightyAppBase = function() {
      */
     this.checkHealth = function(crawlJob, crawlResult, url, extras) {
 
-        // Standardize results to array of result(s)
-        const resultIsArray = Array.isArray(crawlResult);
+        // Handle 80app function executions (parseLinks/processDocument) only once per crawlJob
+        let pageTypes = {
+            processDocument: true,
+            parseLinks: true
+        };
+        if (crawlResult.processDocument.error) {
+            pageTypes.processDocument = false;
+        }
+        if (crawlResult.parseLinks.error) {
+            pageTypes.parseLinks = false;
+        }
+
+        if (crawlResult.processDocument.result && crawlResult.processDocument.result.data) {
+
+            // Standardize data to array of result(s)
+            const resultIsArray = Array.isArray(crawlResult.processDocument.result.data);
+            let results;
+            if (resultIsArray) {
+                results = crawlResult.processDocument.result.data;
+            } else {
+                results = [crawlResult.processDocument.result.data];
+            }
+
+            let outputs = [];
+            const dataType = extras.dataType;
+
+            // We want to generate field specific metrics once per crawl result
+            for (let data of results) {
+
+                let output = { pageTypes: { ...pageTypes } }
         
-        let results;
-        if (resultIsArray) {
-            results = crawlResult;
-        } else {
-            results = [crawlResult];
-        }
-
-        let outputs = [];
-        const dataType = extras.dataType;
-
-        for (let result of results) {
-            let output = {
-                pageTypes: {
-                    processDocument: true,
-                    parseLinks: true
+                // Check for target fields based on dataType.
+                if (dataType) {
+                    switch (dataType) {
+                        case 'business':
+                            if (data.latitude && data.latitude.length && data.longitude && data.longitude.length) {
+                                output.pageTypes.latlong = true;
+                            }
+                            break;
+                        case 'product':
+                            if (data.upc) {
+                                output.pageTypes.upc = true;
+                            }
+                            break;
+                        case 'property':
+                            if (data.mostRecentStatus && data.mostRecentStatus.length) {
+                                output.pageTypes.mostRecentStatus = true;
+                            }
+                    }
                 }
-            }
-    
-            if (result.processDocument.error) {
-                output.pageTypes.processDocument = false;
-            }
-            if (result.parseLinks.error) {
-                output.pageTypes.parseLinks = false;
-            }
 
-            // Check for target fields based on dataType.
-            if (dataType && result.processDocument && result.processDocument.result && result.processDocument.result.data) {
-                const data = result.processDocument.result.data;
-                switch (dataType) {
-                    case 'business':
-                        if (data.latitude && data.latitude.length && data.longitude && data.longitude.length) {
-                            output.pageTypes.latlong = true;
-                        }
-                        break;
-                    case 'product':
-                        if (data.upc && data.upc.length) {
-                            output.pageTypes.upc = true;
-                        }
-                        break;
-                    case 'property':
-                        if (data.mostRecentStatus && data.mostRecentStatus.length) {
-                            output.pageTypes.mostRecentStatus = true;
-                        }
-                }
+                outputs.push(output)
             }
-
-            outputs.push(output)
-        }
-        
-        if (outputs.length > 1) {
-            return outputs
+            
+            if (outputs.length > 1) {
+                return outputs
+            } else {
+                return outputs[0];
+            }
         } else {
-            return outputs[0];
-        }
+            // No data
+            return { ...pageTypes }
+        } 
     }
 
     /**
