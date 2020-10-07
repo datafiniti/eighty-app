@@ -63,7 +63,9 @@ var EightyAppBase = function() {
             pageTypes.parseLinks = false;
         }
 
-        if (crawlResult.processDocument.result && crawlResult.processDocument.result.data) {
+        const dataType = extras.dataType;
+
+        if (crawlResult.processDocument.result && crawlResult.processDocument.result.data && dataType) {
 
             // Standardize data to array of result(s)
             const resultIsArray = Array.isArray(crawlResult.processDocument.result.data);
@@ -74,46 +76,43 @@ var EightyAppBase = function() {
                 results = [crawlResult.processDocument.result.data];
             }
 
-            let outputs = [];
-            const dataType = extras.dataType;
-
-            // We want to generate field specific metrics once per crawl result
+            // Check for target fields based on dataType.
             for (let data of results) {
-
-                let output = { pageTypes: { ...pageTypes } }
         
-                // Check for target fields based on dataType.
-                if (dataType) {
-                    switch (dataType) {
-                        case 'business':
-                            if (data.latitude && data.latitude.length && data.longitude && data.longitude.length) {
-                                output.pageTypes.latlong = true;
+                switch (dataType) {
+                    case 'business':
+                        if (data.latitude && data.latitude.length && data.longitude && data.longitude.length) {
+                            if (pageTypes.latlong) {
+                                pageTypes.latlong.push(true);
+                            } else {
+                                pageTypes.latlong = [true];
                             }
-                            break;
-                        case 'product':
-                            if (data.upc) {
-                                output.pageTypes.upc = true;
+                        }
+                        break;
+                    case 'product':
+                        if (data.upc) {
+                            if (pageTypes.upc) {
+                                pageTypes.upc.push(true);
+                            } else {
+                                pageTypes.upc = [true];
                             }
-                            break;
-                        case 'property':
-                            if (data.mostRecentStatus && data.mostRecentStatus.length) {
-                                output.pageTypes.mostRecentStatus = true;
+                        }
+                        break;
+                    case 'property':
+                        if (data.mostRecentStatus && data.mostRecentStatus.length) {
+                            if (pageTypes.mostRecentStatus) {
+                                console.log(0)
+                                pageTypes.mostRecentStatus.push(true);
+                            } else {
+                                console.log(1)
+                                pageTypes.mostRecentStatus = [true];
                             }
-                    }
+                        }
                 }
+            }
+        }
 
-                outputs.push(output)
-            }
-            
-            if (outputs.length > 1) {
-                return outputs
-            } else {
-                return outputs[0];
-            }
-        } else {
-            // No data
-            return { ...pageTypes }
-        } 
+        return { pageTypes };
     }
 
     /**
