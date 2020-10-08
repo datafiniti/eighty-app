@@ -45,24 +45,70 @@ var EightyAppBase = function() {
     /**
      * Default function Crawl Health Monitor will use to determine health of 80app execution.
      * @param {Object} crawlJob 
-     * @param {Object} crawlResult 
+     * @param {Object} crawlResult
+     * @param {String} url
+     * @param {Object} extras
      */
-    this.checkHealth = function(crawlJob, crawlResult) {
-        let output = {
-            pageTypes: {
-                processDocument: true,
-                parseLinks: true
+    this.checkHealth = function(crawlJob, crawlResult, url, extras) {
+
+        // Handle 80app function executions (parseLinks/processDocument) only once per crawlJob
+        let pageTypes = {
+            processDocument: true,
+            parseLinks: true
+        };
+        if (crawlResult.processDocument.error) {
+            pageTypes.processDocument = false;
+        }
+        if (crawlResult.parseLinks.error) {
+            pageTypes.parseLinks = false;
+        }
+
+        const dataType = extras.dataType;
+
+        // If both dataType and crawl result(s) are available scan through them and test for target fields
+        if (crawlResult.processDocument.result && crawlResult.processDocument.result.data && dataType) {
+
+            // Standardize data to array of result(s)
+            let results = crawlResult.processDocument.result.data;
+            results = Array.isArray(results) ? results : [results];
+
+            // Check for target fields based on dataType.
+            for (let data of results) {
+        
+                switch (dataType) {
+                    case 'business':
+                        if (data.latitude && data.longitude) {
+                            if (pageTypes.latlong) {
+                                pageTypes.latlong.push(true);
+                            } else {
+                                pageTypes.latlong = [true];
+                            }
+                        }
+                        break;
+                    case 'product':
+                        if (data.upc) {
+                            if (pageTypes.upc) {
+                                pageTypes.upc.push(true);
+                            } else {
+                                pageTypes.upc = [true];
+                            }
+                        }
+                        break;
+                    case 'property':
+                        if (data.mostRecentStatus && data.mostRecentStatus.length) {
+                            if (pageTypes.mostRecentStatus) {
+                                console.log(0)
+                                pageTypes.mostRecentStatus.push(true);
+                            } else {
+                                console.log(1)
+                                pageTypes.mostRecentStatus = [true];
+                            }
+                        }
+                }
             }
         }
 
-        if (crawlResult.processDocument.error) {
-            output.pageTypes.processDocument = false;
-        }
-        if (crawlResult.parseLinks.error) {
-            output.pageTypes.parseLinks = false;
-        }
-
-        return output;
+        return { pageTypes };
     }
 
     /**
