@@ -65,23 +65,19 @@ var EightyAppBase = function() {
 
         const dataType = extras.dataType;
 
+        // If both dataType and crawl result(s) are available scan through them and test for target fields
         if (crawlResult.processDocument.result && crawlResult.processDocument.result.data && dataType) {
 
             // Standardize data to array of result(s)
-            const resultIsArray = Array.isArray(crawlResult.processDocument.result.data);
-            let results;
-            if (resultIsArray) {
-                results = crawlResult.processDocument.result.data;
-            } else {
-                results = [crawlResult.processDocument.result.data];
-            }
+            let results = crawlResult.processDocument.result.data;
+            results = Array.isArray(results) ? results : [results];
 
             // Check for target fields based on dataType.
             for (let data of results) {
         
                 switch (dataType) {
                     case 'business':
-                        if (data.latitude && data.latitude.length && data.longitude && data.longitude.length) {
+                        if (data.latitude && data.longitude) {
                             if (pageTypes.latlong) {
                                 pageTypes.latlong.push(true);
                             } else {
