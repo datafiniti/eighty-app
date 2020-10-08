@@ -97,10 +97,8 @@ var EightyAppBase = function() {
                     case 'property':
                         if (data.mostRecentStatus && data.mostRecentStatus.length) {
                             if (pageTypes.mostRecentStatus) {
-                                console.log(0)
                                 pageTypes.mostRecentStatus.push(true);
                             } else {
-                                console.log(1)
                                 pageTypes.mostRecentStatus = [true];
                             }
                         }
