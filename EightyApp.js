@@ -1083,6 +1083,7 @@ var EightyAppBase = function() {
         'Jordan': 'JO',
         'Kazakhstan': 'KZ',
         'Kenya': 'KE',
+        'Republic of Kiribati': 'KI',
         'Kiribati': 'KI',
         'Democratic People\'s Republic of Korea': 'KP',
         'Republic of Korea': 'KR',
